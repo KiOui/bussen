@@ -8,7 +8,9 @@ var next = false;
 var cards = [];
 var answer;
 var question=0;
-
+var started=false;
+var round2started=false;
+var round2 = [4,4];
 const timeout = async ms => new Promise(res => setTimeout(res, ms));
 
 const chatSocket = new ReconnectingWebSocket(
@@ -45,15 +47,41 @@ chatSocket.onmessage = async function (e) {
     console.log(data);
     if (data.message.startsWith('?round1')) {
         removeButton();
-        document.getElementById("turn-question").innerHTML = "It's " + data.username + "s turn";
-        if (data.username === username && data.question < 4) {
-            toggleQuestions("block");
-            await getQuestion(data);
+        if(!started){
+            document.getElementById("question-choices").style.display = "none";
+            document.getElementById("text-question").innerHTML = "You still have time to grab a drink";
+        }
+        if(question<4) {
+            document.getElementById("turn-question").innerHTML = "It's " + data.username + "s turn";
+            if (data.username === username && data.question < 4) {
+                started = true;
+                toggleQuestions("block");
+                await getQuestion(data);
+                chatSocket.send(JSON.stringify({
+                    'message': "?round1",
+                    'username': username
+                }));
+                question++;
+            }
+        }
+    }
+    else if(data.message === "?round2"){
+        startRound2();
+        if(round2[0]<0){
+            round2started=false;
             chatSocket.send(JSON.stringify({
-                'message': "?round1",
-                'username': username
+                    'message': "?round3",
+                    'username': username
             }));
-            question++;
+            return;
+        }
+        await waitForServerCard();
+        document.getElementById("layer"+round2[0]+"-"+round2[1]).style.border = "3px solid #021a40";
+        if(round2[1]===0){
+            round2[0]--;
+            round2[1]=round2[0];
+        }else{
+            round2[1]--;
         }
     }
     else if(data.message === "?card"){
@@ -67,6 +95,10 @@ chatSocket.onmessage = async function (e) {
             }
             document.getElementById("c"+cards.indexOf(data.card)).src = "/static/media/cards/" + data.card+".jpg";
             next=true;
+        }
+        else if(round2started){
+            next=true;
+            document.getElementById("layer"+round2[0]+"-"+round2[1]).src = "/static/media/cards/" + data.card+".jpg";
         }
     }
     else if(data.message === "Okay"){
@@ -97,6 +129,11 @@ async function waitUserInput() {
     next = false; // reset var
 }
 
+async function waitForServerCard(){
+    while (next === false) await timeout(50); // pause script but avoid browser to freeze ;)
+    next = false; // reset var
+}
+
 function removeButton(){
     document.getElementById("room-start").style.display = "none";
     document.getElementById("questions").style.display = "block";
@@ -106,6 +143,11 @@ function toggleQuestions(property){
     document.getElementById("question-choices").style.display = property;
 }
 
+function startRound2() {
+    round2started=true;
+    document.getElementById("round2").style.display = "block";
+    toggleQuestions("none");
+}
 
 document.getElementById("answer-submit").onclick = function(){
     var radios = document.getElementsByName('answer');

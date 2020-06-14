@@ -1,5 +1,6 @@
 import json
 import random
+from threading import Timer, Thread, Event
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 
@@ -9,9 +10,26 @@ startArray = []
 question = []
 user = []
 cards = []
-
+round2 = []
 colors = ['h', 'd', 's', 'c']
 
+class perpetualTimer():
+
+   def __init__(self, t, hFunction):
+      self.t = t
+      self.hFunction = hFunction
+      self.thread = Timer(self.t, self.handle_function)
+
+   def handle_function(self):
+      self.hFunction()
+      self.thread = Timer(self.t, self.handle_function)
+      self.thread.start()
+
+   def start(self):
+      self.thread.start()
+
+   def cancel(self):
+      self.thread.cancel()
 
 class ChatConsumer(WebsocketConsumer):
 
@@ -35,6 +53,7 @@ class ChatConsumer(WebsocketConsumer):
             question.append(0)
             user.append(0)
             cards.append(create_cards())
+            round2.append(0)
         self.accept()
 
     def disconnect(self, close_code):
@@ -47,9 +66,35 @@ class ChatConsumer(WebsocketConsumer):
     # Receive message from WebSocket
 
     def receive(self, text_data):
+        def next_card():
+            if round2[rooms.index(self.room_group_name)] < 15:
+                card = random.choice(cards[rooms.index(self.room_group_name)])
+                cards[rooms.index(self.room_group_name)].remove(card)
+                async_to_sync(self.channel_layer.group_send)(
+                    self.room_group_name,
+                    {
+                        'type': 'chat_message',
+                        'message': "?card",
+                        'username': "server",
+                        'card': card,
+                    }
+                )
+                async_to_sync(self.channel_layer.group_send)(
+                    self.room_group_name,
+                    {
+                        'type': 'chat_message',
+                        'message': "?round2",
+                        'username': "server",
+                    }
+                )
+            round2[rooms.index(self.room_group_name)] += 1
+
+        timer = perpetualTimer(2, next_card)
+
         text_data_json = json.loads(text_data)
         message = text_data_json['message']
         username = text_data_json['username']
+
         if message == '?adduser':
             if username not in users[rooms.index(self.room_group_name)]:
                 users[rooms.index(self.room_group_name)].append(username)
@@ -74,6 +119,28 @@ class ChatConsumer(WebsocketConsumer):
                         'username': next_username,
                     }
                 )
+            else:
+                async_to_sync(self.channel_layer.group_send)(
+                    self.room_group_name,
+                    {
+                        'type': 'chat_message',
+                        'message': "?round2",
+                        'username': next_username,
+                    }
+                )
+                timer.start()
+        elif message == "?round2":
+            timer.start()
+        elif message == "?round3":
+            timer.cancel()
+            async_to_sync(self.channel_layer.group_send)(
+                self.room_group_name,
+                {
+                    'type': 'chat_message',
+                    'message': "?round3",
+                    'username': "server",
+                }
+            )
         elif message == "?question":
             card = random.choice(cards[rooms.index(self.room_group_name)])
             cards[rooms.index(self.room_group_name)].remove(card)
@@ -105,6 +172,13 @@ class ChatConsumer(WebsocketConsumer):
                 'username': username,
                 'question': quest
             }))
+        elif message == "?card":
+            card= event['card']
+            self.send(text_data=json.dumps({
+                'message': "?card",
+                'username': username,
+                'card': card
+            }))
         else:
             # Send message to WebSocket
             self.send(text_data=json.dumps({
@@ -122,23 +196,23 @@ def letsgo(self):
         return "done", question[self_index]
     elif user[self_index] == 0 and question[self_index] == 0:
         user[self_index] += 1
-        return users[self_index][user[self_index]-1], question[self_index]
+        return users[self_index][user[self_index] - 1], question[self_index]
     elif len(users[self_index]) == 1:
         user[self_index] = 0
         question[self_index] += 1
-        return users[self_index][user[self_index]-1], question[self_index]
-    elif user[self_index] == len(users[self_index])-1:
+        return users[self_index][user[self_index] - 1], question[self_index]
+    elif user[self_index] == len(users[self_index]) - 1:
         question[self_index] += 1
         user[self_index] = 0
-        return users[self_index][len(users[self_index])-1], question[self_index]-1
+        return users[self_index][len(users[self_index]) - 1], question[self_index] - 1
     else:
         user[self_index] += 1
-        return users[self_index][user[self_index]-1], question[self_index]
+        return users[self_index][user[self_index] - 1], question[self_index]
 
 
 def create_cards():
     deck = []
     for s in colors:
         for i in range(1, 14):
-            deck.append(s+str(i))
+            deck.append(s + str(i))
     return deck

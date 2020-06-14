@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html xmlns="http://www.w3.org/1999/html">
 <head>
     <meta charset="utf-8"/>
     <title>Centurion Room {{ room_name }}</title>
@@ -30,34 +30,73 @@
     </div>
     <div class="w3-row w3-container" id="question-choices" style="padding-bottom: 20px">
         <div class="w3-col s4 w3-container">
-            <H2 id="a0"></H2><br><input class="w3-radio" type="radio" name="answer" value="a">
+            <H2 id="a0"></H2><br><input class="w3-radio" type="radio" name="answer" value="a" checked>
         </div>
-        <div class="w3-col s4 w3-container">
-            <H2 id="a1"></H2><br><input class="w3-radio" type="radio" name="answer" value="b">
+        <div class="w3-col s4">
+            <div class="w3-container">
+                <H2 id="a1"></H2><br><input class="w3-radio" type="radio" name="answer" value="b">
+            </div>
+            <input id="answer-submit" class="w3-button w3-round-large" style="background-color: #e62272; color: white;
+            margin: auto; margin-top:10%; width: 100%" type="button" value="Enter">
         </div>
         <div class="w3-col s4 w3-container">
             <H2 id="a2"></H2><br><input class="w3-radio" type="radio" name="answer" value="c">
         </div>
-        <input id="answer-submit" class="w3-button w3-round-large" style="background-color: white; color: #e62272;
-            margin-top:2%" type="button" value="Enter">
     </div>
 </div>
-<div id="cards" class="w3-row w3-container w3-center">
-    <div class="w3-col s3 w3-container">
-        {% load static %}
-        <img class="card w3-round-large" id="c0" src="{% static 'media/cards/back.jpg' %}">
+<div id="round2" style="display: none">
+    <div class="cellHolder" id="layer0">
+        <img class="cardPyramid w3-round-large" id="layer0-0" src="{% static 'media/cards/back.jpg' %}">
     </div>
-    <div class="w3-col s3 w3-container">
-        {% load static %}
-        <img class="card w3-round-large" id="c1" src="{% static 'media/cards/back.jpg' %}">
+    <div id="layer1" class="w3-cell-row">
+        <div class="w3-cell cellHolder">
+            <img class="cardPyramid w3-round-large" style="float:right; margin-right: 8%" id="layer1-0" src="{% static 'media/cards/back.jpg' %}">
+        </div>
+        <div class="w3-cell cellHolder">
+            <img class="cardPyramid w3-round-large" style="float: left; margin-left: 8%" id="layer1-1" src="{% static 'media/cards/back.jpg' %}">
+        </div>
     </div>
-    <div class="w3-col s3 w3-container">
-        {% load static %}
-        <img class="card w3-round-large" id="c2" src="{% static 'media/cards/back.jpg' %}">
+    <div id="layer2" class="w3-cell-row">
+        <div class="w3-cell cellHolder" style="margin-top: 10px">
+            <img class="cardPyramid w3-round-large" style="float: right;" id="layer2-0" src="{% static 'media/cards/back.jpg' %}">
+        </div>
+        <div class="w3-cell cellHolder" style="margin-top: 10px">
+            <img class="cardPyramid w3-round-large" style="float: right; margin-right: 28%;" id="layer2-1" src="{% static 'media/cards/back.jpg' %}">
+        </div>
+        <div class="w3-cell cellHolder" style="margin-top: 10px">
+            <img class="cardPyramid w3-round-large" style="float: left;" id="layer2-2" src="{% static 'media/cards/back.jpg' %}">
+        </div>
     </div>
-    <div class="w3-col s3 w3-container">
-        {% load static %}
-        <img class="card w3-round-large" id="c3" src="{% static 'media/cards/back.jpg' %}">
+    <div id="layer3" class="w3-cell-row">
+        <div class="w3-cell">
+            <img class="cardPyramid w3-round-large" style="float: right" id="layer3-0" src="{% static 'media/cards/back.jpg' %}">
+        </div>
+        <div class="w3-cell">
+            <img class="cardPyramid w3-round-large" style="float: right; margin-right: 13%" id="layer3-1" src="{% static 'media/cards/back.jpg' %}">
+        </div>
+        <div class="w3-cell">
+            <img class="cardPyramid w3-round-large" style="float: left; margin-left: 13%" id="layer3-2" src="{% static 'media/cards/back.jpg' %}">
+        </div>
+        <div class="w3-cell">
+            <img class="cardPyramid w3-round-large" style="float: left" id="layer3-3" src="{% static 'media/cards/back.jpg' %}">
+        </div>
+    </div>
+    <div id="layer4" class="w3-cell-row">
+        <div class="w3-cell">
+            <img class="cardPyramid w3-round-large" id="layer4-0" src="{% static 'media/cards/back.jpg' %}">
+        </div>
+        <div class="w3-cell">
+            <img class="cardPyramid w3-round-large" id="layer4-1" src="{% static 'media/cards/back.jpg' %}">
+        </div>
+        <div class="w3-cell">
+            <img class="cardPyramid w3-round-large" id="layer4-2" src="{% static 'media/cards/back.jpg' %}">
+        </div>
+        <div class="w3-cell">
+            <img class="cardPyramid w3-round-large" id="layer4-3" src="{% static 'media/cards/back.jpg' %}">
+        </div>
+        <div class="w3-cell">
+            <img class="cardPyramid w3-round-large" id="layer4-4" src="{% static 'media/cards/back.jpg' %}">
+        </div>
     </div>
 </div>
 
@@ -74,4 +113,26 @@
     <script src="{% static 'js/main.js' %}"></script>
 </div>
 </body>
+<footer class="owncards">
+    <H1 style="color: white">Your cards</H1>
+    <div id="cards" class="w3-row w3-container w3-center">
+        <div class="w3-col s3 w3-container">
+            {% load static %}
+            <img class="card w3-round-large" id="c0" src="{% static 'media/cards/back.jpg' %}">
+        </div>
+        <div class="w3-col s3 w3-container">
+            {% load static %}
+            <img class="card w3-round-large" id="c1" src="{% static 'media/cards/back.jpg' %}">
+        </div>
+        <div class="w3-col s3 w3-container">
+            {% load static %}
+            <img class="card w3-round-large" id="c2" src="{% static 'media/cards/back.jpg' %}">
+        </div>
+        <div class="w3-col s3 w3-container">
+            {% load static %}
+            <img class="card w3-round-large" id="c3" src="{% static 'media/cards/back.jpg' %}">
+        </div>
+    </div>
+</footer>
+
 </html>

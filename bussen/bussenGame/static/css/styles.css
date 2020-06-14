@@ -5,20 +5,11 @@ body {
     text-align: center;
     font-family: oswald, sans-serif;
     color: white;
+    min-height: 100vh;
 }
 
 ::-webkit-scrollbar {
     display: none;
-}
-
-@media (max-width:629px) {
-  div#centurionMessagesDiv {
-    display: none;
-  }
-    div#logo2 {
-    display: none;
-  }
-
 }
 
 .welcome{
@@ -31,18 +22,6 @@ body {
     display: none;
 }
 
-.form{
-    background-color: transparent;
-    color: #e62272;
-    width: 100%;
-    padding: 12px 20px;
-    margin: 8px 0;
-    display: inline-block;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-sizing: border-box;
-    text-align: center;
-}
 
 #room-name-input{
     background-color: transparent;
@@ -63,6 +42,22 @@ body {
     margin: auto;
     margin-top: 10%;
 }
+.cellHolder{
+    margin-top: 2px;
+}
+
+.owncards{
+ margin-bottom: 80px;
+    margin-top: 20px;
+}
+
+.cardPyramid{
+    width: 15vw;
+    margin: auto;
+    margin-bottom: 1%;
+    margin-top: 2vw;
+}
+
 
 .logo{
     max-width: 30%;
