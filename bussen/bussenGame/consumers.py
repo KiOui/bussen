@@ -89,7 +89,7 @@ class ChatConsumer(WebsocketConsumer):
                 )
             round2[rooms.index(self.room_group_name)] += 1
 
-        timer = perpetualTimer(2, next_card)
+        timer = perpetualTimer(5, next_card)
 
         text_data_json = json.loads(text_data)
         message = text_data_json['message']
@@ -141,6 +141,17 @@ class ChatConsumer(WebsocketConsumer):
                     'username': "server",
                 }
             )
+        elif message == "?placecard":
+            card = text_data_json['card']
+            async_to_sync(self.channel_layer.group_send)(
+                self.room_group_name,
+                {
+                    'type': 'chat_message',
+                    'message': message,
+                    'username': username,
+                    'card': card
+                }
+            )
         elif message == "?question":
             card = random.choice(cards[rooms.index(self.room_group_name)])
             cards[rooms.index(self.room_group_name)].remove(card)
@@ -172,13 +183,14 @@ class ChatConsumer(WebsocketConsumer):
                 'username': username,
                 'question': quest
             }))
-        elif message == "?card":
-            card= event['card']
+        elif message == "?card" or message == "?placecard":
+            card = event['card']
             self.send(text_data=json.dumps({
-                'message': "?card",
+                'message': message,
                 'username': username,
                 'card': card
             }))
+
         else:
             # Send message to WebSocket
             self.send(text_data=json.dumps({

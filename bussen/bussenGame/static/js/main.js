@@ -10,11 +10,12 @@ var answer;
 var question=0;
 var started=false;
 var round2started=false;
-var round2 = [4,4];
+var round2old = [4,4];
+var round2new = [4,4];
 const timeout = async ms => new Promise(res => setTimeout(res, ms));
 
 const chatSocket = new ReconnectingWebSocket(
-    'ws://'
+    'wss://'
     + window.location.host
     + '/ws/room/'
     + roomName
@@ -65,9 +66,12 @@ chatSocket.onmessage = async function (e) {
             }
         }
     }
+    else if(data.message === "?placecard"){
+        place_card(data.card);
+    }
     else if(data.message === "?round2"){
         startRound2();
-        if(round2[0]<0){
+        if(round2new[0]<0){
             round2started=false;
             chatSocket.send(JSON.stringify({
                     'message': "?round3",
@@ -76,12 +80,13 @@ chatSocket.onmessage = async function (e) {
             return;
         }
         await waitForServerCard();
-        document.getElementById("layer"+round2[0]+"-"+round2[1]).style.border = "3px solid #021a40";
-        if(round2[1]===0){
-            round2[0]--;
-            round2[1]=round2[0];
+        round2old = round2new;
+        document.getElementById("layer"+round2new[0]+"-"+round2new[1]).style.border = "3px solid #021a40";
+        if(round2new[1]===0){
+            round2new[0]--;
+            round2new[1]=round2new[0];
         }else{
-            round2[1]--;
+            round2new[1]--;
         }
     }
     else if(data.message === "?card"){
@@ -98,7 +103,7 @@ chatSocket.onmessage = async function (e) {
         }
         else if(round2started){
             next=true;
-            document.getElementById("layer"+round2[0]+"-"+round2[1]).src = "/static/media/cards/" + data.card+".jpg";
+            document.getElementById("layer"+round2new[0]+"-"+round2new[1]).src = "/static/media/cards/" + data.card+".jpg";
         }
     }
     else if(data.message === "Okay"){
@@ -109,6 +114,12 @@ chatSocket.onmessage = async function (e) {
         document.getElementById("text-input").textContent = "That username is already taken";
     }
 };
+function place_card(card){
+    var list=document.getElementById("card"+round2old[0]+"-"+round2old[1]);
+    var node = document.createElement("li");
+    node.innerHTML+="<button class='w3-button'>"+card+"</button>"
+    list.insertBefore(node,list.firstChild);
+}
 
 async function getQuestion(data){
     document.getElementById("turn-question").innerHTML = "It's your turn!";
@@ -147,6 +158,24 @@ function startRound2() {
     round2started=true;
     document.getElementById("round2").style.display = "block";
     toggleQuestions("none");
+
+    for(let k=0; k<4; k++){
+    document.getElementById("c"+k).onclick= function(){
+            if(document.getElementById("c"+k).src !== "/static/media/cards/back.jpg")
+            cardOnClick(k);
+        }
+    }
+}
+
+function cardOnClick(k){
+    chatSocket.send(JSON.stringify({
+            'message': "?placecard",
+            'username': username,
+            'card': cards[k]
+        }));
+        console.log(k);
+        document.getElementById("c"+k).src = "/static/media/cards/back.jpg";
+        place_card(cards[k]);
 }
 
 document.getElementById("answer-submit").onclick = function(){
@@ -159,6 +188,8 @@ document.getElementById("answer-submit").onclick = function(){
     }
     next=true;
 }
+
+
 document.getElementById("room-start").onclick = function (e) {
     chatSocket.send(JSON.stringify({
         'message': "?round1",
@@ -180,7 +211,7 @@ function closingCode() {
     return null;
 }
 function getNumber(card) {
-    if(card.length===3){
+    if(card.length === 3){
         return parseInt(card.substring(1));
     }else{
         return parseInt(card.charAt(1));
