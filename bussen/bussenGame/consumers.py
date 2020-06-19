@@ -31,6 +31,7 @@ class perpetualTimer():
    def cancel(self):
       self.thread.cancel()
 
+
 class ChatConsumer(WebsocketConsumer):
 
     def remove(self):
@@ -89,7 +90,7 @@ class ChatConsumer(WebsocketConsumer):
                 )
             round2[rooms.index(self.room_group_name)] += 1
 
-        timer = perpetualTimer(5, next_card)
+        timer = perpetualTimer(8, next_card)
 
         text_data_json = json.loads(text_data)
         message = text_data_json['message']
@@ -130,7 +131,8 @@ class ChatConsumer(WebsocketConsumer):
                 )
                 timer.start()
         elif message == "?round2":
-            timer.start()
+            if round2[rooms.index(self.room_group_name)] == 0:
+                timer.start()
         elif message == "?round3":
             timer.cancel()
             async_to_sync(self.channel_layer.group_send)(
@@ -139,6 +141,19 @@ class ChatConsumer(WebsocketConsumer):
                     'type': 'chat_message',
                     'message': "?round3",
                     'username': "server",
+                }
+            )
+        elif message == "?drink":
+            lie = text_data_json['lie']
+            card = text_data_json['card']
+            async_to_sync(self.channel_layer.group_send)(
+                self.room_group_name,
+                {
+                    'type': 'chat_message',
+                    'message': message,
+                    'username': username,
+                    'card':card,
+                    'lie': lie
                 }
             )
         elif message == "?placecard":
@@ -190,7 +205,15 @@ class ChatConsumer(WebsocketConsumer):
                 'username': username,
                 'card': card
             }))
-
+        elif message == "?drink":
+            lie = event['lie']
+            card = event['card']
+            self.send(text_data=json.dumps({
+                'message': message,
+                'username': username,
+                'card': card,
+                'lie': lie
+            }))
         else:
             # Send message to WebSocket
             self.send(text_data=json.dumps({

@@ -10,12 +10,15 @@ var answer;
 var question=0;
 var started=false;
 var round2started=false;
-var round2old = [4,4];
-var round2new = [4,4];
+let round2old = [4,4];
+let round2new = [4,4];
+let numberofplaceBefore = [0,1,3,6,10];
+var placedCards = [[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]];
+
 const timeout = async ms => new Promise(res => setTimeout(res, ms));
 
 const chatSocket = new ReconnectingWebSocket(
-    'wss://'
+    'ws://'
     + window.location.host
     + '/ws/room/'
     + roomName
@@ -66,27 +69,49 @@ chatSocket.onmessage = async function (e) {
             }
         }
     }
-    else if(data.message === "?placecard"){
-        place_card(data.card);
+    else if(data.message === "?placecard" && data.username !== username){
+        place_card(data.card,data.username);
     }
     else if(data.message === "?round2"){
-        startRound2();
+        document.getElementById("turn-question").innerHTML = "Place your cards!";
+        if(!round2started) {
+            startRound2();
+        }
         if(round2new[0]<0){
             round2started=false;
             chatSocket.send(JSON.stringify({
                     'message': "?round3",
                     'username': username
             }));
-            return;
+        }else {
+            await waitForServerCard();
+            round2old = round2new.slice();
+            document.getElementById("layer" + round2new[0] + "-" + round2new[1]).style.border = "3px solid #021a40";
+            if (round2new[1] === 0) {
+                round2new[0]--;
+                round2new[1] = round2new[0];
+            } else {
+                round2new[1]--;
+            }
         }
-        await waitForServerCard();
-        round2old = round2new;
-        document.getElementById("layer"+round2new[0]+"-"+round2new[1]).style.border = "3px solid #021a40";
-        if(round2new[1]===0){
-            round2new[0]--;
-            round2new[1]=round2new[0];
-        }else{
-            round2new[1]--;
+    }
+    else if(data.message === "?drink"){
+        if(data.username === username){
+            if(data.lie){
+                document.getElementById("turn-question").innerHTML = "You lied!";
+                document.getElementById("text-question").innerHTML = "Drink up";
+                putCardBack(data.card);
+            }else{
+                document.getElementById("text-question").innerHTML = "Someone thought you were lying, they need to drink";
+            }
+        }
+        else{
+            if(data.lie){
+                document.getElementById("turn-question").innerHTML = data.username + " Lied";
+                document.getElementById("text-question").innerHTML = "They need to drink";
+            }else{
+                document.getElementById("text-question").innerHTML = data.username + "s card was correct";
+            }
         }
     }
     else if(data.message === "?card"){
@@ -114,11 +139,39 @@ chatSocket.onmessage = async function (e) {
         document.getElementById("text-input").textContent = "That username is already taken";
     }
 };
-function place_card(card){
+
+function place_card(card, username){
+    placedCards[numberofplaceBefore[round2old[0]]+round2old[1]].push(username,card);
     var list=document.getElementById("card"+round2old[0]+"-"+round2old[1]);
     var node = document.createElement("li");
-    node.innerHTML+="<button class='w3-button'>"+card+"</button>"
+    node.innerHTML+="<button class='w3-button middle' onclick='checkPlacedCard(this.innerHTML)' style='background: black'>"+username+"</button>"
     list.insertBefore(node,list.firstChild);
+}
+
+function checkPlacedCard(user){
+    let index = placedCards[numberofplaceBefore[round2old[0]]+round2old[1]].indexOf(user)+1;
+    let cardvalue = document.getElementById("layer"+round2old[0]+"-"+round2old[1]).src;
+    if(cardvalue.substring(cardvalue.indexOf("cards/")+6,cardvalue.indexOf(".jpg")) !== "back" && user !== username){
+        cardvalue = cardvalue.substring(cardvalue.indexOf("cards/") + 6, cardvalue.indexOf(".jpg"));
+        document.getElementById("turn-question").innerHTML = user + "s card was " + placedCards[numberofplaceBefore[round2old[0]] + round2old[1]][index];
+        if (parseInt(placedCards[numberofplaceBefore[round2old[0]] + round2old[1]][index].substring(1)) === parseInt(cardvalue.substring(1))) {
+            document.getElementById("text-question").innerHTML = "You need to drink!";
+            chatSocket.send(JSON.stringify({
+                'message': "?drink",
+                'username': username,
+                'card':placedCards[numberofplaceBefore[round2old[0]] + round2old[1]][index],
+                'lie':false
+            }));
+        } else {
+            document.getElementById("text-question").innerHTML = "They were lying!";
+            chatSocket.send(JSON.stringify({
+                'message': "?drink",
+                'username': user,
+                'card':placedCards[numberofplaceBefore[round2old[0]] + round2old[1]][index],
+                'lie':true
+            }));
+        }
+    }
 }
 
 async function getQuestion(data){
@@ -149,9 +202,19 @@ function removeButton(){
     document.getElementById("room-start").style.display = "none";
     document.getElementById("questions").style.display = "block";
 }
+
 function toggleQuestions(property){
     document.getElementById("answer-submit").style.display = property;
     document.getElementById("question-choices").style.display = property;
+}
+
+function putCardBack(card) {
+    for(let i=0; i<4; i++){
+        if(document.getElementById("c"+i).src === (window.location.protocol+"//"+window.location.host+"/static/media/cards/back.jpg")){
+            document.getElementById("c"+i).src = "/static/media/cards/"+card+".jpg";
+            break;
+        }
+    }
 }
 
 function startRound2() {
@@ -161,26 +224,26 @@ function startRound2() {
 
     for(let k=0; k<4; k++){
     document.getElementById("c"+k).onclick= function(){
-            if(document.getElementById("c"+k).src !== "/static/media/cards/back.jpg")
-            cardOnClick(k);
+            if(document.getElementById("c"+k).src !== (window.location.protocol+"//"+window.location.host+"/static/media/cards/back.jpg")) {
+                cardOnClick(k);
+            }
         }
     }
 }
 
 function cardOnClick(k){
-    chatSocket.send(JSON.stringify({
+            chatSocket.send(JSON.stringify({
             'message': "?placecard",
             'username': username,
             'card': cards[k]
         }));
-        console.log(k);
         document.getElementById("c"+k).src = "/static/media/cards/back.jpg";
-        place_card(cards[k]);
+        place_card(cards[k],username);
 }
 
 document.getElementById("answer-submit").onclick = function(){
     var radios = document.getElementsByName('answer');
-    for( var i=0; i<radios.length; i++){
+    for( let i=0; i<radios.length; i++){
         if(radios[i].checked){
             answer=radios[i].value;
             break;
@@ -231,8 +294,8 @@ function checkAnswer(card){
                     return answer !== "b";
             }
         case 1:
-            cardvalue=getNumber(cards[1]);
-            card0=getNumber(cards[0]);
+            cardvalue = getNumber(cards[1]);
+            card0 = getNumber(cards[0]);
 
             if(cardvalue>card0){
                 return answer ==="a";
@@ -260,14 +323,14 @@ function checkAnswer(card){
             switch (answer) {
                 case "a":
                     for(j in cards){
-                        if(card.charAt(0)===j.charAt(0)){
+                        if(card.charAt(0) === j.charAt(0)){
                             return true;
                         }
                     }
                     return false;
                 case "b":
                     for(k in cards){
-                        if(card.charAt(0)===k.charAt(0)){
+                        if(card.charAt(0) === k.charAt(0)){
                             return false;
                         }
                     }
