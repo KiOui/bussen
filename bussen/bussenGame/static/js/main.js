@@ -18,7 +18,7 @@ var placedCards = [[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]];
 const timeout = async ms => new Promise(res => setTimeout(res, ms));
 
 const chatSocket = new ReconnectingWebSocket(
-    'ws://'
+    'wss://'
     + window.location.host
     + '/ws/room/'
     + roomName
