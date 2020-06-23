@@ -280,6 +280,7 @@ function putCardBack(card) {
 function startRound2() {
     round2started = true;
     document.getElementById("round2").style.display = "block";
+    document.getElementById("questions").style.display = "none";
     toggleQuestions("none");
     document.getElementById("turn-question").style.display = "none";
     document.getElementById("text-question").style.display = "none";

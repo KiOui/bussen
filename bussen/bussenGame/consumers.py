@@ -11,25 +11,8 @@ question = []
 user = []
 cards = []
 round2 = []
+hosts = []
 colors = ['h', 'd', 's', 'c']
-
-class perpetualTimer():
-
-   def __init__(self, t, hFunction):
-      self.t = t
-      self.hFunction = hFunction
-      self.thread = Timer(self.t, self.handle_function)
-
-   def handle_function(self):
-      self.hFunction()
-      self.thread = Timer(self.t, self.handle_function)
-      self.thread.start()
-
-   def start(self):
-      self.thread.start()
-
-   def cancel(self):
-      self.thread.cancel()
 
 
 class ChatConsumer(WebsocketConsumer):
@@ -55,6 +38,7 @@ class ChatConsumer(WebsocketConsumer):
             user.append(0)
             cards.append(create_cards())
             round2.append(0)
+            hosts.append("X")
         self.accept()
 
     def disconnect(self, close_code):
@@ -67,30 +51,10 @@ class ChatConsumer(WebsocketConsumer):
     # Receive message from WebSocket
 
     def receive(self, text_data):
-        def next_card():
-            if round2[rooms.index(self.room_group_name)] < 15:
-                card = random.choice(cards[rooms.index(self.room_group_name)])
-                cards[rooms.index(self.room_group_name)].remove(card)
-                async_to_sync(self.channel_layer.group_send)(
-                    self.room_group_name,
-                    {
-                        'type': 'chat_message',
-                        'message': "?card",
-                        'username': "server",
-                        'card': card,
-                    }
-                )
-                async_to_sync(self.channel_layer.group_send)(
-                    self.room_group_name,
-                    {
-                        'type': 'chat_message',
-                        'message': "?round2",
-                        'username': "server",
-                    }
-                )
-            round2[rooms.index(self.room_group_name)] += 1
-
-        timer = perpetualTimer(8, next_card)
+        # def next_card():
+        #
+        #
+        # timer = perpetualTimer(10, next_card)
 
         text_data_json = json.loads(text_data)
         message = text_data_json['message']
@@ -108,6 +72,16 @@ class ChatConsumer(WebsocketConsumer):
                 }))
         elif message == "/closing_screen":
             users[rooms.index(self.room_group_name)].remove(username)
+            if username == hosts[rooms.index(self.room_group_name)]:
+                hosts[rooms.index(self.room_group_name)] = random.choice(users[rooms.index(self.room_group_name)])
+                async_to_sync(self.channel_layer.group_send)(
+                    self.room_group_name,
+                    {
+                        'type': 'chat_message',
+                        'message': "?newhost",
+                        'username': hosts[rooms.index(self.room_group_name)],
+                    }
+                )
         elif message == "?round1":
             next_username, turn = letsgo(self)
             if next_username != "done":
@@ -121,20 +95,38 @@ class ChatConsumer(WebsocketConsumer):
                     }
                 )
             else:
+                hosts[rooms.index(self.room_group_name)] = random.choice(users[rooms.index(self.room_group_name)])
                 async_to_sync(self.channel_layer.group_send)(
                     self.room_group_name,
                     {
                         'type': 'chat_message',
                         'message': "?round2",
-                        'username': next_username,
+                        'username': hosts[rooms.index(self.room_group_name)],
                     }
                 )
-                timer.start()
         elif message == "?round2":
-            if round2[rooms.index(self.room_group_name)] == 0:
-                timer.start()
+            if round2[rooms.index(self.room_group_name)] < 15:
+                card = random.choice(cards[rooms.index(self.room_group_name)])
+                cards[rooms.index(self.room_group_name)].remove(card)
+                async_to_sync(self.channel_layer.group_send)(
+                    self.room_group_name,
+                    {
+                        'type': 'chat_message',
+                        'message': "?card",
+                        'username': "server",
+                        'card': card,
+                    }
+                )
+                async_to_sync(self.channel_layer.group_send)(
+                    self.room_group_name,
+                    {
+                        'type': 'chat_message',
+                        'message': message,
+                        'username': username,
+                    }
+                )
+            round2[rooms.index(self.room_group_name)] += 1
         elif message == "?round3":
-            timer.cancel()
             async_to_sync(self.channel_layer.group_send)(
                 self.room_group_name,
                 {
@@ -146,14 +138,16 @@ class ChatConsumer(WebsocketConsumer):
         elif message == "?drink":
             lie = text_data_json['lie']
             card = text_data_json['card']
+            looked = text_data_json['looked']
             async_to_sync(self.channel_layer.group_send)(
                 self.room_group_name,
                 {
                     'type': 'chat_message',
                     'message': message,
                     'username': username,
-                    'card':card,
-                    'lie': lie
+                    'card': card,
+                    'lie': lie,
+                    'looked': looked
                 }
             )
         elif message == "?placecard":
@@ -208,11 +202,13 @@ class ChatConsumer(WebsocketConsumer):
         elif message == "?drink":
             lie = event['lie']
             card = event['card']
+            looked = event['looked']
             self.send(text_data=json.dumps({
                 'message': message,
                 'username': username,
                 'card': card,
-                'lie': lie
+                'lie': lie,
+                'looked': looked
             }))
         else:
             # Send message to WebSocket
