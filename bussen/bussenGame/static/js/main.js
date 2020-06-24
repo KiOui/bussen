@@ -10,13 +10,16 @@ let answer;
 let question = 0;
 let started = false;
 let round2started = false;
+let round3started = false;
 let interval;
 let isHost = false;
 let round2old = [4, 4];
 let round2new = [4, 4];
 let numberofplaceBefore = [0, 1, 3, 6, 10];
 let placedCards = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], []];
-
+let waitTime = 1000;
+let round3Card = 1;
+let isPlaying = "";
 const timeout = async ms => new Promise(res => setTimeout(res, ms));
 
 const chatSocket = new ReconnectingWebSocket(
@@ -34,7 +37,7 @@ $.ajaxSetup({
 
 chatSocket.onopen = function (e) {
     modal.style.display = "block";
-    var input = document.getElementById("fname");
+    let input = document.getElementById("fname");
     input.focus();
     input.onkeyup = function (e) {
         if (e.keyCode === 13) {  // enter, return
@@ -74,20 +77,24 @@ chatSocket.onmessage = async function (e) {
     } else if (data.message === "?placecard" && data.username !== username) {
         place_card(data.card, data.username);
     } else if (data.message === "?round2") {
-        document.getElementById("turn-question").innerHTML = "Place your cards!";
         if (!round2started) {
             startRound2();
             if (data.username === username) {
-                isHost=true;
-                interval = setInterval(sendRound2, 10000);
+                isHost = true;
+                interval = setInterval(sendRound2, waitTime);
             }
         }
+        console.log(round2new);
         if (round2new[0] < 0) {
+            clearInterval(interval);
             round2started = false;
-            chatSocket.send(JSON.stringify({
-                'message': "?round3",
-                'username': username
-            }));
+            sendCardsLeft();
+            if (isHost) {
+                chatSocket.send(JSON.stringify({
+                    'message': "?round3",
+                    'username': username
+                }));
+            }
         } else {
             await waitForServerCard();
             round2old = round2new.slice();
@@ -99,15 +106,37 @@ chatSocket.onmessage = async function (e) {
                 round2new[1]--;
             }
         }
-    }else if(data.message === "?newhost") {
-        if(data.username === username){
+
+    } else if (data.message === "?round3") {
+        round3started = true;
+        sendCardsLeft();
+    } else if (data.message === "?inthebus") {
+        document.getElementById("round2").style.display = "none";
+        document.getElementById("yourCards").style.display = "none";
+        document.getElementById("inTheBus").style.display = "block";
+        document.getElementById("BusTurn").innerText = data.username + " is going in the bus!"
+        await timeout(5000);
+        document.getElementById("inTheBus").style.display = "none";
+        document.getElementById("round3").style.display = "block";
+        document.getElementById("isPlaying").innerText = data.username + "s playing";
+        document.getElementById("busc0").src = "/static/media/cards/" + data.card + ".jpg";
+        selectCard(1, "visible");
+        isPlaying = data.username;
+        if (data.username === username) {
+            startRound3();
+        }
+    } else if (data.message === "?newhost") {
+        if (data.username === username) {
             isHost = true;
         }
+    } else if (data.message === "?finished") {
+        confetti.start();
+        await timeout(10000);
+        window.location.replace("https://bussen.vdhorst.dev");
     } else if (data.message === "?drink") {
         if (isHost) {
-            console.log("reset interval");
             clearInterval(interval);
-            interval = setInterval(sendRound2, 10000);
+            interval = setInterval(sendRound2, waitTime);
         }
         if (data.username === username) {
             if (data.lie) {
@@ -120,7 +149,7 @@ chatSocket.onmessage = async function (e) {
             }
         } else {
             if (data.username + " Lied") {
-                toastr.error(data.username + " Lied, they need to drink!\n The card was: "+ data.card);
+                toastr.error(data.username + " Lied, they need to drink!\n The card was: " + data.card);
                 if (data.looked !== username) {
                     removeLiedAboutButton(data.username);
                     removePlacedCard(data.card);
@@ -143,6 +172,34 @@ chatSocket.onmessage = async function (e) {
         } else if (round2started) {
             next = true;
             document.getElementById("layer" + round2new[0] + "-" + round2new[1]).src = "/static/media/cards/" + data.card + ".jpg";
+        } else if (round3started) {
+            if (data.username === "#reset") {
+                document.getElementById("busc0").src = "/static/media/cards/" + data.card + ".jpg";
+            } else {
+                document.getElementById("busc" + round3Card).src = "/static/media/cards/" + data.card + ".jpg";
+                if (checkMove(data.card, data.move)) {
+                    document.getElementById("round3message").innerText = "Correct! nect card";
+                    selectCard(round3Card, "hidden");
+                    round3Card++;
+                    if (round3Card > 5) {
+                        round3Finished();
+                    } else {
+                        selectCard(round3Card, "visible");
+                    }
+                } else {
+                    document.getElementById("round3message").innerText = "Wrong! back to the beginning";
+                    selectCard(round3Card, "hidden");
+                    round3Card = 1;
+                    selectCard(round3Card, "visible");
+                    if (isPlaying === username) {
+                        chatSocket.send(JSON.stringify({
+                            'message': "?reset",
+                            'username': username,
+                        }));
+                    }
+                }
+            }
+            next = true;
         }
     } else if (data.message === "Okay") {
         username = inputUser;
@@ -152,10 +209,17 @@ chatSocket.onmessage = async function (e) {
     }
 };
 
+function round3Finished() {
+    chatSocket.send(JSON.stringify({
+        'message': "?finished",
+        'username': username,
+    }));
+}
+
 function place_card(card, username) {
     placedCards[numberofplaceBefore[round2old[0]] + round2old[1]].push(username, card);
-    var list = document.getElementById("card" + round2old[0] + "-" + round2old[1]);
-    var node = document.createElement("li");
+    let list = document.getElementById("card" + round2old[0] + "-" + round2old[1]);
+    let node = document.createElement("li");
     node.innerHTML += "<button class='w3-button middle' onclick='checkPlacedCard(this.innerHTML)' style='background: black'>" + username + "</button>"
     list.insertBefore(node, list.firstChild);
 }
@@ -164,6 +228,55 @@ function sendRound2() {
     chatSocket.send(JSON.stringify({
         'message': "?round2",
         'username': username,
+    }));
+}
+
+function startRound3() {
+    for (let i = 1; i < 6; i++) {
+        document.getElementById("busu" + i).onclick = async function () {
+            chatSocket.send(JSON.stringify({
+                'message': "?bus",
+                'username': username,
+                'move': "up"
+            }));
+        };
+        document.getElementById("busd" + i).onclick = async function () {
+            chatSocket.send(JSON.stringify({
+                'message': "?bus",
+                'username': username,
+                'move': "down"
+            }));
+        };
+        document.getElementById("busb" + i).onclick = async function () {
+            chatSocket.send(JSON.stringify({
+                'message': "?bus",
+                'username': username,
+                'move': "paal"
+            }));
+        };
+    }
+}
+
+function selectCard(id, display) {
+    document.getElementById("busu" + id).style.visibility = display;
+    document.getElementById("busb" + id).style.visibility = display;
+    document.getElementById("busd" + id).style.visibility = display;
+}
+
+function sendCardsLeft() {
+    let cardsleft = [];
+    let cardvalue;
+    for (let i = 0; i < 4; i++) {
+        cardvalue = document.getElementById("c" + i).src;
+        cardvalue = cardvalue.substring(cardvalue.indexOf("cards/") + 6, cardvalue.indexOf(".jpg"));
+        if (document.getElementById("c" + i).src !== (window.location.protocol + "//" + window.location.host + "/static/media/cards/back.jpg")) {
+            cardsleft.push(document.getElementById("c" + i).src.substring(cardvalue.indexOf("cards/") + 6, cardvalue.indexOf(".jpg")));
+        }
+    }
+    chatSocket.send(JSON.stringify({
+        'message': "?left",
+        'username': username,
+        'left': cardsleft.length
     }));
 }
 
@@ -178,11 +291,8 @@ function checkPlacedCard(user) {
             if (count === 1) {
                 index = placedCards[numberofplaceBefore[round2old[0]] + round2old[1]].indexOf(user);
                 if (parseInt(placedCards[numberofplaceBefore[round2old[0]] + round2old[1]][index + 1].substring(1)) === parseInt(cardvalue.substring(1))) {
-                    document.getElementById("text-question").innerHTML = "You need to drink!";
                     sendDrinkResponse(username, placedCards[numberofplaceBefore[round2old[0]] + round2old[1]][index + 1], false, username);
                 } else {
-                    document.getElementById("turn-question").innerHTML = user + "s card was " + placedCards[numberofplaceBefore[round2old[0]] + round2old[1]][index + 1];
-                    document.getElementById("text-question").innerHTML = "They were lying!";
                     sendDrinkResponse(user, placedCards[numberofplaceBefore[round2old[0]] + round2old[1]][index + 1], true, username);
                     removeLiedAboutButton(user);
                     removePlacedCard(placedCards[numberofplaceBefore[round2old[0]] + round2old[1]][index + 1]);
@@ -193,20 +303,18 @@ function checkPlacedCard(user) {
                     index = placedCards[numberofplaceBefore[round2old[0]] + round2old[1]].indexOf(user, index + 1);
                     cardvalue = cardvalue.substring(cardvalue.indexOf("cards/") + 6, cardvalue.indexOf(".jpg"));
                     if (parseInt(placedCards[numberofplaceBefore[round2old[0]] + round2old[1]][index + 1].substring(1)) !== parseInt(cardvalue.substring(1))) {
-                        document.getElementById("text-question").innerHTML = "They were lying!";
-                        document.getElementById("turn-question").innerHTML = user + "s card was " + placedCards[numberofplaceBefore[round2old[0]] + round2old[1]][index + 1];
                         sendDrinkResponse(user, placedCards[numberofplaceBefore[round2old[0]] + round2old[1]][index + 1], true, username);
                         removeLiedAboutButton(user);
                         removePlacedCard(placedCards[numberofplaceBefore[round2old[0]] + round2old[1]][index + 1]);
                         return;
                     }
                 }
-                document.getElementById("text-question").innerHTML = "You need to drink!";
                 sendDrinkResponse(username, placedCards[numberofplaceBefore[round2old[0]] + round2old[1]][index + 1], false, username);
             }
         }
     }
 }
+
 function sendDrinkResponse(user, card, lie, looked) {
     chatSocket.send(JSON.stringify({
         'message': "?drink",
@@ -346,6 +454,23 @@ function getNumber(card) {
     }
 }
 
+function checkMove(card, move) {
+    let previouscard = document.getElementById("busc" + (round3Card - 1)).src;
+    previouscard = previouscard.substring(previouscard.indexOf("cards/") + 6, previouscard.indexOf(".jpg"));
+    console.log(previouscard);
+    console.log(move);
+    switch (move) {
+        case "up":
+            console.log(getNumber(card));
+            console.log(getNumber(previouscard));
+            return getNumber(card) > getNumber(previouscard);
+        case "down":
+            return getNumber(card) < getNumber(previouscard);
+        case "paal":
+            return getNumber(card) === getNumber(previouscard);
+    }
+}
+
 function checkAnswer(card) {
     switch (question) {
         case 0:
@@ -399,8 +524,8 @@ function checkAnswer(card) {
                     }
                     return true;
                 case "c":
-                    var tempArr = [];
-                    for (var i = 0; i < cards.length; i++) {
+                    let tempArr = [];
+                    for (let i = 0; i < cards.length; i++) {
                         if (i === 0 || tempArr.findIndex(el => el === cards[i].charAt(0)) === -1) {
                             tempArr.push(cards[i].charAt(0));
                         }

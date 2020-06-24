@@ -83,6 +83,36 @@ body {
 .image:hover + ul {
     opacity: 1;
 }
+.triangle-up {
+	width: 0;
+	height: 0;
+	border-left: 20px solid transparent;
+	border-right: 20px solid transparent;
+	border-bottom: 25px solid #ffffff;
+    margin: auto;
+    visibility: hidden;
+}
+.triangle-up:hover{
+	opacity: 0.3;
+	transition: 0.5s;
+}
+
+.triangle-down {
+	width: 0;
+	height: 0;
+	border-left: 20px solid transparent;
+	border-right: 20px solid transparent;
+	border-top: 25px solid #ffffff;
+    vertical-align: middle;
+    margin: 10% auto auto;
+    visibility: hidden;
+}
+
+.triangle-down:hover{
+	opacity: 0.3;
+	transition: 0.5s;
+}
+
 
 ul:hover{
     opacity: 1;
@@ -96,7 +126,7 @@ ul:hover{
 .middle {
     width: 100%;
     padding: 0;
-    margin: 10px 0 0;
+    margin: 0 0 10px;
 }
 
 .logo {

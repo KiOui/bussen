@@ -13,8 +13,9 @@
 
 {% load static %}
 <script type="text/javascript" src="{% static 'js/Reconnectingsocket.js' %}"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script type="text/javascript" src="{% static 'js/toastr.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/confetti.min.js' %}"></script>
 
 <div class="w3-mobile">
     <div class="welcome w3-mobile" style="margin-right: auto; margin-left: auto; padding-top: 1px">
@@ -102,44 +103,121 @@
             <ul style="list-style-type: none; left: 30%" id='card3-3'></ul>
         </div>
     </div>
-        <div id="layer4" class="w3-cell-row">
-            <div class="w3-cell cellHolder">
-                <img class="cardPyramid w3-round-large image" id="layer4-0" src="{% static 'media/cards/back.jpg' %}">
-                <ul style="list-style-type: none; " id='card4-0'></ul>
-            </div>
-            <div class="w3-cell cellHolder">
-                <img class="cardPyramid w3-round-large image" id="layer4-1" src="{% static 'media/cards/back.jpg' %}">
-                <ul style="list-style-type: none;" id='card4-1'></ul>
-            </div>
-            <div class="w3-cell cellHolder">
-                <img class="cardPyramid w3-round-large image" id="layer4-2" src="{% static 'media/cards/back.jpg' %}">
-                <ul style="list-style-type: none; " id='card4-2'></ul>
-            </div>
-            <div class="w3-cell cellHolder">
-                <img class="cardPyramid w3-round-large image" id="layer4-3" src="{% static 'media/cards/back.jpg' %}">
-                <ul style="list-style-type: none;" id='card4-3'></ul>
-            </div>
-            <div class="w3-cell cellHolder">
-                <img class="cardPyramid w3-round-large image" id="layer4-4" src="{% static 'media/cards/back.jpg' %}">
-                <ul style="list-style-type: none;" id='card4-4'></ul>
-            </div>
+    <div id="layer4" class="w3-cell-row">
+        <div class="w3-cell cellHolder">
+            <img class="cardPyramid w3-round-large image" id="layer4-0" src="{% static 'media/cards/back.jpg' %}">
+            <ul style="list-style-type: none; " id='card4-0'></ul>
+        </div>
+        <div class="w3-cell cellHolder">
+            <img class="cardPyramid w3-round-large image" id="layer4-1" src="{% static 'media/cards/back.jpg' %}">
+            <ul style="list-style-type: none;" id='card4-1'></ul>
+        </div>
+        <div class="w3-cell cellHolder">
+            <img class="cardPyramid w3-round-large image" id="layer4-2" src="{% static 'media/cards/back.jpg' %}">
+            <ul style="list-style-type: none; " id='card4-2'></ul>
+        </div>
+        <div class="w3-cell cellHolder">
+            <img class="cardPyramid w3-round-large image" id="layer4-3" src="{% static 'media/cards/back.jpg' %}">
+            <ul style="list-style-type: none;" id='card4-3'></ul>
+        </div>
+        <div class="w3-cell cellHolder">
+            <img class="cardPyramid w3-round-large image" id="layer4-4" src="{% static 'media/cards/back.jpg' %}">
+            <ul style="list-style-type: none;" id='card4-4'></ul>
         </div>
     </div>
+</div>
 
-    <div id="myModal" class="modal">
-        <div class="w3-mobile w3-center w3-container" style="margin-top: 7%">
-            <h1 id="text-input">Please enter your username</h1>
-            <input class="w3-input w3-border-0 w3-round-large" type="text" id="fname" name="fname"
-                   style="width: 30%; background-color: white;
+<div id="myModal" class="modal">
+    <div class="w3-mobile w3-center w3-container" style="margin-top: 7%">
+        <h1 id="text-input">Please enter your username</h1>
+        <input class="w3-input w3-border-0 w3-round-large" type="text" id="fname" name="fname"
+               style="width: 30%; background-color: white;
                                                             text-align: center; display: inline-block">
+    </div>
+</div>
+<div class="w3-container w3-cell w3-center w3-mobile" style="width: 20%; padding-top: 15px">
+    {{ room_name|json_script:"room-name" }}
+    <script src="{% static 'js/main.js' %}"></script>
+</div>
+<div id="inTheBus" class="w3-card w3-center" style="display: none; width: 60%; margin: auto">
+    <header class="w3-container" style="background: #e62272">
+        <h1 id="BusTurn" style="color: white"></h1>
+    </header>
+</div>
+<div id="round3" style="display: none">
+    <div class="w3-card w3-center" style="width: 60%; margin: auto auto 5%;">
+        <header class="w3-container" style="background: #e62272">
+            <h1 id="round3message" style="color: white">Test</h1>
+        </header>
+    </div>
+    <div id="Bus" class="w3-cell-row">
+        <div class="w3-cell cellHolder">
+            <div id="busu0" class="triangle-up"></div>
+            <img class="cardPyramid w3-round-large image" id="busc0" src="{% static 'media/cards/back.jpg' %}">
+            <ul style="list-style-type: none;">
+                <li>
+                    <button class='w3-button middle' id="busb0" style='background: black; display: none'> Paal</button>
+                </li>
+            </ul>
+            <div id="busd0" class="triangle-down"></div>
+        </div>
+        <div class="w3-cell cellHolder">
+            <div id="busu1" class="triangle-up"></div>
+            <img class="cardPyramid w3-round-large image" id="busc1" src="{% static 'media/cards/back.jpg' %}">
+            <ul style="list-style-type: none;">
+                <li>
+                    <button class='w3-button middle' id="busb1" style='background: black; display: none'> Paal</button>
+                </li>
+            </ul>
+            <div id="busd1" class="triangle-down"></div>
+        </div>
+        <div class="w3-cell cellHolder">
+            <div id="busu2" class="triangle-up"></div>
+            <img class="cardPyramid w3-round-large image" id="busc2" src="{% static 'media/cards/back.jpg' %}">
+            <ul style="list-style-type: none;">
+                <li>
+                    <button class='w3-button middle' id="busb2" style='background: black; display: none'> Paal</button>
+                </li>
+            </ul>
+            <div id="busd2" class="triangle-down"></div>
+        </div>
+        <div class="w3-cell cellHolder">
+            <div id="busu3" class="triangle-up"></div>
+            <img class="cardPyramid w3-round-large image" id="busc3" src="{% static 'media/cards/back.jpg' %}">
+            <ul style="list-style-type: none;" >
+                <li>
+                    <button class='w3-button middle' id="busb3" style='background: black; display: none'> Paal</button>
+                </li>
+            </ul>
+            <div id="busd3" class="triangle-down"></div>
+        </div>
+        <div id class="w3-cell cellHolder w3-center">
+            <div id="busu4" class="triangle-up"></div>
+            <img class="cardPyramid w3-round-large image" id="busc4" src="{% static 'media/cards/back.jpg' %}">
+            <ul style="list-style-type: none;">
+                <li>
+                    <button class='w3-button middle' id="busb4" style='background: black; display: none'> Paal</button>
+                </li>
+            </ul>
+            <div id="busd4" class="triangle-down"></div>
+        </div>
+        <div class="w3-cell cellHolder">
+            <div id="busu5" class="triangle-up"></div>
+            <img class="cardPyramid w3-round-large image" id="busc5" src="{% static 'media/cards/back.jpg' %}">
+            <ul style="list-style-type: none;">
+                <li>
+                    <button class='w3-button middle'  id="busb5" style='background: black; display: none'> Paal</button>
+                </li>
+            </ul>
+            <div id="busd5" class="triangle-down"></div>
         </div>
     </div>
-    <div class="w3-container w3-cell w3-center w3-mobile" style="width: 20%; padding-top: 15px">
-        {{ room_name|json_script:"room-name" }}
-        <script src="{% static 'js/main.js' %}"></script>
+    <div>
+        <h1 id="isPlaying"></h1>
     </div>
+</div>
 </body>
-<footer class="owncards">
+<footer id="yourCards" class="owncards">
     <H1 style="color: white">Your cards</H1>
     <div id="cards" class="w3-row w3-container w3-center">
         <div class="w3-col s3 w3-container">

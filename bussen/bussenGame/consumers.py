@@ -12,15 +12,11 @@ user = []
 cards = []
 round2 = []
 hosts = []
+cardsleft = []
 colors = ['h', 'd', 's', 'c']
 
 
 class ChatConsumer(WebsocketConsumer):
-
-    def remove(self):
-        del startArray[rooms.index(self.room_group_name)]
-        del users[rooms.index(self.room_group_name)]
-        rooms.remove(self.room_group_name)
 
     def connect(self):
         global rooms
@@ -39,6 +35,7 @@ class ChatConsumer(WebsocketConsumer):
             cards.append(create_cards())
             round2.append(0)
             hosts.append("X")
+            cardsleft.append([])
         self.accept()
 
     def disconnect(self, close_code):
@@ -51,10 +48,6 @@ class ChatConsumer(WebsocketConsumer):
     # Receive message from WebSocket
 
     def receive(self, text_data):
-        # def next_card():
-        #
-        #
-        # timer = perpetualTimer(10, next_card)
 
         text_data_json = json.loads(text_data)
         message = text_data_json['message']
@@ -72,7 +65,9 @@ class ChatConsumer(WebsocketConsumer):
                 }))
         elif message == "/closing_screen":
             users[rooms.index(self.room_group_name)].remove(username)
-            if username == hosts[rooms.index(self.room_group_name)]:
+            if len(users[rooms.index(self.room_group_name)]) == 0:
+                remove(self)
+            elif username == hosts[rooms.index(self.room_group_name)]:
                 hosts[rooms.index(self.room_group_name)] = random.choice(users[rooms.index(self.room_group_name)])
                 async_to_sync(self.channel_layer.group_send)(
                     self.room_group_name,
@@ -82,8 +77,10 @@ class ChatConsumer(WebsocketConsumer):
                         'username': hosts[rooms.index(self.room_group_name)],
                     }
                 )
+
         elif message == "?round1":
             next_username, turn = letsgo(self)
+            print(next_username)
             if next_username != "done":
                 async_to_sync(self.channel_layer.group_send)(
                     self.room_group_name,
@@ -105,28 +102,29 @@ class ChatConsumer(WebsocketConsumer):
                     }
                 )
         elif message == "?round2":
-            if round2[rooms.index(self.room_group_name)] < 15:
-                card = random.choice(cards[rooms.index(self.room_group_name)])
-                cards[rooms.index(self.room_group_name)].remove(card)
-                async_to_sync(self.channel_layer.group_send)(
-                    self.room_group_name,
-                    {
-                        'type': 'chat_message',
-                        'message': "?card",
-                        'username': "server",
-                        'card': card,
-                    }
-                )
-                async_to_sync(self.channel_layer.group_send)(
-                    self.room_group_name,
-                    {
-                        'type': 'chat_message',
-                        'message': message,
-                        'username': username,
-                    }
-                )
-            round2[rooms.index(self.room_group_name)] += 1
+            # if round2[rooms.index(self.room_group_name)] < 15:
+            card = random.choice(cards[rooms.index(self.room_group_name)])
+            cards[rooms.index(self.room_group_name)].remove(card)
+            async_to_sync(self.channel_layer.group_send)(
+                self.room_group_name,
+                {
+                    'type': 'chat_message',
+                    'message': "?card",
+                    'username': "server",
+                    'card': card,
+                }
+            )
+            async_to_sync(self.channel_layer.group_send)(
+                self.room_group_name,
+                {
+                    'type': 'chat_message',
+                    'message': message,
+                    'username': username,
+                }
+            )
+            # round2[rooms.index(self.room_group_name)] += 1
         elif message == "?round3":
+            cards[rooms.index(self.room_group_name)] = create_cards()
             async_to_sync(self.channel_layer.group_send)(
                 self.room_group_name,
                 {
@@ -135,6 +133,30 @@ class ChatConsumer(WebsocketConsumer):
                     'username': "server",
                 }
             )
+        elif message == "?bus":
+            move = text_data_json['move']
+            if len(cards[rooms.index(self.room_group_name)]) == 0:
+                async_to_sync(self.channel_layer.group_send)(
+                    self.room_group_name,
+                    {
+                        'type': 'chat_message',
+                        'message': "?empty",
+                        'username': "server",
+                    }
+                )
+            else:
+                card = random.choice(cards[rooms.index(self.room_group_name)])
+                cards[rooms.index(self.room_group_name)].remove(card)
+                async_to_sync(self.channel_layer.group_send)(
+                    self.room_group_name,
+                    {
+                        'type': 'chat_message',
+                        'message': "?card",
+                        'username': "#round3",
+                        'card': card,
+                        'move': move
+                    }
+                )
         elif message == "?drink":
             lie = text_data_json['lie']
             card = text_data_json['card']
@@ -150,6 +172,7 @@ class ChatConsumer(WebsocketConsumer):
                     'looked': looked
                 }
             )
+
         elif message == "?placecard":
             card = text_data_json['card']
             async_to_sync(self.channel_layer.group_send)(
@@ -161,16 +184,7 @@ class ChatConsumer(WebsocketConsumer):
                     'card': card
                 }
             )
-        elif message == "?question":
-            card = random.choice(cards[rooms.index(self.room_group_name)])
-            cards[rooms.index(self.room_group_name)].remove(card)
-            self.send(text_data=json.dumps({
-                'message': "?card",
-                'username': username,
-                'card': card
-            }))
-        else:
-            # Send message to room group
+        elif message == "?finished":
             async_to_sync(self.channel_layer.group_send)(
                 self.room_group_name,
                 {
@@ -179,6 +193,64 @@ class ChatConsumer(WebsocketConsumer):
                     'username': username,
                 }
             )
+
+        elif message == "?reset":
+            card = random.choice(cards[rooms.index(self.room_group_name)])
+            cards[rooms.index(self.room_group_name)].remove(card)
+            async_to_sync(self.channel_layer.group_send)(
+                self.room_group_name,
+                {
+                    'type': 'chat_message',
+                    'message': "?card",
+                    'username': "#reset",
+                    'card': card
+                }
+            )
+        elif message == "?question":
+            card = random.choice(cards[rooms.index(self.room_group_name)])
+            cards[rooms.index(self.room_group_name)].remove(card)
+            self.send(text_data=json.dumps({
+                'message': "?card",
+                'username': username,
+                'card': card
+            }))
+
+        elif message == "?left":
+            left = text_data_json['left']
+            cardsleft[rooms.index(self.room_group_name)].append([username, left])
+            if len(cardsleft[rooms.index(self.room_group_name)]) == len(users[rooms.index(self.room_group_name)]):
+                lowest = 15
+                passenger = ""
+                found = False
+                for c in cardsleft[rooms.index(self.room_group_name)]:
+                    if lowest > c[1]:
+                        lowest = c[1]
+                while not found:
+                    selected = random.choice(cardsleft[rooms.index(self.room_group_name)])
+                    if selected[1] == lowest:
+                        found = True
+                        passenger = selected[0]
+                card = random.choice(cards[rooms.index(self.room_group_name)])
+                cards[rooms.index(self.room_group_name)].remove(card)
+                async_to_sync(self.channel_layer.group_send)(
+                    self.room_group_name,
+                    {
+                        'type': 'chat_message',
+                        'message': "?inthebus",
+                        'username': passenger,
+                        'card': card
+                    }
+                )
+        else:
+            async_to_sync(self.channel_layer.group_send)(
+                self.room_group_name,
+                {
+                    'type': 'chat_message',
+                    'message': message,
+                    'username': username,
+                }
+            )
+
 
     # Receive message from room group
     def chat_message(self, event):
@@ -192,13 +264,22 @@ class ChatConsumer(WebsocketConsumer):
                 'username': username,
                 'question': quest
             }))
-        elif message == "?card" or message == "?placecard":
+        elif message == "?card" or message == "?placecard" or message == "?inthebus":
             card = event['card']
-            self.send(text_data=json.dumps({
-                'message': message,
-                'username': username,
-                'card': card
-            }))
+            if username == "#round3":
+                move = event['move']
+                self.send(text_data=json.dumps({
+                    'message': message,
+                    'username': username,
+                    'card': card,
+                    'move': move
+                }))
+            else:
+                self.send(text_data=json.dumps({
+                    'message': message,
+                    'username': username,
+                    'card': card
+                }))
         elif message == "?drink":
             lie = event['lie']
             card = event['card']
@@ -240,6 +321,16 @@ def letsgo(self):
         user[self_index] += 1
         return users[self_index][user[self_index] - 1], question[self_index]
 
+def remove(self):
+    del startArray[rooms.index(self.room_group_name)]
+    del users[rooms.index(self.room_group_name)]
+    del question[rooms.index(self.room_group_name)]
+    del user[rooms.index(self.room_group_name)]
+    del cards[rooms.index(self.room_group_name)]
+    del round2[rooms.index(self.room_group_name)]
+    del hosts[rooms.index(self.room_group_name)]
+    del cardsleft[rooms.index(self.room_group_name)]
+    rooms.remove(self.room_group_name)
 
 def create_cards():
     deck = []
