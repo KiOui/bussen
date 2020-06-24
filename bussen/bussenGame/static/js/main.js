@@ -23,7 +23,7 @@ let isPlaying = "";
 const timeout = async ms => new Promise(res => setTimeout(res, ms));
 
 const chatSocket = new ReconnectingWebSocket(
-    'wss://'
+    'ws://'
     + window.location.host
     + '/ws/room/'
     + roomName
@@ -131,7 +131,7 @@ chatSocket.onmessage = async function (e) {
         if (data.username === username) {
             isHost = true;
         }
-    } else if(data.message === "?empty"){
+    } else if (data.message === "?empty") {
         confetti.start();
         document.getElementById("round3message").innerText = "The deck is out of cards, good luck getting home...";
         await timeout(10000);
@@ -147,7 +147,7 @@ chatSocket.onmessage = async function (e) {
                 removeLiedAboutButton(username);
                 putCardBack(data.card);
                 removePlacedCard(data.card);
-            } else if (data.looked !== username) {
+            } else {
                 toastr.warning(data.looked + ' thought you were lying\n They need to drink');
             }
         } else {
@@ -158,7 +158,25 @@ chatSocket.onmessage = async function (e) {
                     removePlacedCard(data.card);
                 }
             } else {
-                toastr.warning(data.username + 's card was correct\n' + data.looked + ' needs to drink!');
+                if (data.looked === username) {
+                    toastr.error(data.username + 's card was correct\n You need to drink!');
+                } else {
+                    toastr.warning(data.username + 's card was correct\n' + data.looked + ' needs to drink!');
+                }
+            }
+        }
+    } else if (data.message === "?response") {
+        if (data.username !== username) {
+            if (data.response === "wrong") {
+                toastr.warning(data.username + " needs to drink!");
+            } else {
+                toastr.success(data.username + " Has guessed correct!");
+            }
+        } else {
+            if (data.response === "wrong") {
+                toastr.warning("Wrong! you need to drink!");
+            } else {
+                toastr.success("Correct!");
             }
         }
     } else if (data.message === "?card") {
@@ -167,8 +185,10 @@ chatSocket.onmessage = async function (e) {
             toggleQuestions("none");
             if (checkAnswer(data.card)) {
                 document.getElementById("text-question").innerHTML = "Correct!";
+                sendResponse("correct");
             } else {
                 document.getElementById("text-question").innerHTML = "Wrong, take a sip!";
+                sendResponse("wrong");
             }
             document.getElementById("c" + cards.indexOf(data.card)).src = "/static/media/cards/" + data.card + ".jpg";
             next = true;
@@ -216,6 +236,14 @@ function round3Finished() {
     chatSocket.send(JSON.stringify({
         'message': "?finished",
         'username': username,
+    }));
+}
+
+function sendResponse(response) {
+    chatSocket.send(JSON.stringify({
+        'message': "?response",
+        'username': username,
+        'response': response,
     }));
 }
 
@@ -295,7 +323,7 @@ function checkPlacedCard(user) {
             if (count === 1) {
                 index = placedCards[numberofplaceBefore[round2old[0]] + round2old[1]].indexOf(user);
                 if (parseInt(placedCards[numberofplaceBefore[round2old[0]] + round2old[1]][index + 1].substring(1)) === parseInt(cardvalue.substring(1))) {
-                    sendDrinkResponse(username, placedCards[numberofplaceBefore[round2old[0]] + round2old[1]][index + 1], false, username);
+                    sendDrinkResponse(user, placedCards[numberofplaceBefore[round2old[0]] + round2old[1]][index + 1], false, username);
                 } else {
                     sendDrinkResponse(user, placedCards[numberofplaceBefore[round2old[0]] + round2old[1]][index + 1], true, username);
                     removeLiedAboutButton(user);
@@ -313,7 +341,7 @@ function checkPlacedCard(user) {
                         return;
                     }
                 }
-                sendDrinkResponse(username, placedCards[numberofplaceBefore[round2old[0]] + round2old[1]][index + 1], false, username);
+                sendDrinkResponse(user, placedCards[numberofplaceBefore[round2old[0]] + round2old[1]][index + 1], false, username);
             }
         }
     }
@@ -510,15 +538,15 @@ function checkAnswer(card) {
         case 3:
             switch (answer) {
                 case "a":
-                    for (j in cards) {
-                        if (card.charAt(0) === j.charAt(0)) {
+                    for (let j = 0; j < cards.length; j++) {
+                        if (card.charAt(0) === cards[j].charAt(0)) {
                             return true;
                         }
                     }
                     return false;
                 case "b":
-                    for (k in cards) {
-                        if (card.charAt(0) === k.charAt(0)) {
+                    for (let k = 0; k < cards.length; k++) {
+                        if (card.charAt(0) === cards[k].charAt(0)) {
                             return false;
                         }
                     }
@@ -530,11 +558,7 @@ function checkAnswer(card) {
                             tempArr.push(cards[i].charAt(0));
                         }
                     }
-                    if (tempArr.length === 4) {
-                        return true;
-                    } else {
-                        return false;
-                    }
+                    return tempArr.length === 4;
 
             }
     }

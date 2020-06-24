@@ -1,6 +1,6 @@
 import json
 import random
-from threading import Timer, Thread, Event
+from time import sleep
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 
@@ -91,6 +91,7 @@ class ChatConsumer(WebsocketConsumer):
                     }
                 )
             else:
+                sleep(1)
                 hosts[rooms.index(self.room_group_name)] = random.choice(users[rooms.index(self.room_group_name)])
                 async_to_sync(self.channel_layer.group_send)(
                     self.room_group_name,
@@ -190,7 +191,17 @@ class ChatConsumer(WebsocketConsumer):
                     'username': username,
                 }
             )
-
+        elif message == "?response":
+            response = text_data_json['response']
+            async_to_sync(self.channel_layer.group_send)(
+                self.room_group_name,
+                {
+                    'type': 'chat_message',
+                    'message': message,
+                    'username': username,
+                    'response': response
+                }
+            )
         elif message == "?reset":
             if len(cards[rooms.index(self.room_group_name)]) == 0:
                 async_to_sync(self.channel_layer.group_send)(
@@ -269,6 +280,13 @@ class ChatConsumer(WebsocketConsumer):
                 'message': message,
                 'username': username,
                 'question': quest
+            }))
+        elif message == "?response":
+            response = event['response']
+            self.send(text_data=json.dumps({
+                'message': message,
+                'username': username,
+                'response': response
             }))
         elif message == "?card" or message == "?placecard" or message == "?inthebus":
             card = event['card']
