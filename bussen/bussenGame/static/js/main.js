@@ -73,6 +73,11 @@ chatSocket.onmessage = async function (e) {
             }
         }
     } else if (data.message === "?placecard" && data.username !== username) {
+        toastr.warning(data.username + " placed a card");
+        if (isHost) {
+            clearInterval(interval);
+            interval = setInterval(sendRound2, waitTime);
+        }
         place_card(data.card, data.username);
     } else if (data.message === "?round2") {
         if (!round2started) {
@@ -136,10 +141,6 @@ chatSocket.onmessage = async function (e) {
         await timeout(10000);
         window.location.replace("https://bussen.vdhorst.dev");
     } else if (data.message === "?drink") {
-        if (isHost) {
-            clearInterval(interval);
-            interval = setInterval(sendRound2, waitTime);
-        }
         if (data.username === username) {
             if (data.lie) {
                 toastr.error("You Lied, drink up!");
@@ -150,14 +151,14 @@ chatSocket.onmessage = async function (e) {
                 toastr.warning(data.looked + ' thought you were lying\n They need to drink');
             }
         } else {
-            if (data.username + " Lied") {
+            if (data.lie) {
                 toastr.error(data.username + " Lied, they need to drink!\n The card was: " + data.card);
                 if (data.looked !== username) {
                     removeLiedAboutButton(data.username);
                     removePlacedCard(data.card);
                 }
             } else {
-                toastr.warning(data.username + 's card was correct\n data.looked + " needs to drink!');
+                toastr.warning(data.username + 's card was correct\n' + data.looked + ' needs to drink!');
             }
         }
     } else if (data.message === "?card") {
@@ -287,6 +288,7 @@ function checkPlacedCard(user) {
         let index = 0;
         let cardvalue = document.getElementById("layer" + round2old[0] + "-" + round2old[1]).src;
         let count = 0;
+        console.log(placedCards);
         placedCards[numberofplaceBefore[round2old[0]] + round2old[1]].forEach((v) => (v === user && count++));
         cardvalue = cardvalue.substring(cardvalue.indexOf("cards/") + 6, cardvalue.indexOf(".jpg"));
         if (cardvalue !== "back" && user !== username) {

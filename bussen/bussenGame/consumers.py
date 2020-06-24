@@ -226,15 +226,15 @@ class ChatConsumer(WebsocketConsumer):
             left = text_data_json['left']
             cardsleft[rooms.index(self.room_group_name)].append([username, left])
             if len(cardsleft[rooms.index(self.room_group_name)]) == len(users[rooms.index(self.room_group_name)]):
-                lowest = 15
+                highest = 0
                 passenger = ""
                 found = False
                 for c in cardsleft[rooms.index(self.room_group_name)]:
-                    if lowest > c[1]:
-                        lowest = c[1]
+                    if highest < c[1]:
+                        highest = c[1]
                 while not found:
                     selected = random.choice(cardsleft[rooms.index(self.room_group_name)])
-                    if selected[1] == lowest:
+                    if selected[1] == highest:
                         found = True
                         passenger = selected[0]
                 card = random.choice(cards[rooms.index(self.room_group_name)])
