@@ -17,7 +17,7 @@ let round2old = [4, 4];
 let round2new = [4, 4];
 let numberofplaceBefore = [0, 1, 3, 6, 10];
 let placedCards = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], []];
-let waitTime = 1000;
+let waitTime = 10000;
 let round3Card = 1;
 let isPlaying = "";
 const timeout = async ms => new Promise(res => setTimeout(res, ms));
@@ -47,13 +47,11 @@ chatSocket.onopen = function (e) {
                 'username': inputUser,
             }));
         }
-
     }
 };
 
 chatSocket.onmessage = async function (e) {
     const data = JSON.parse(e.data);
-    console.log(data);
 
     if (data.message.startsWith('?round1')) {
         removeButton();
@@ -84,7 +82,6 @@ chatSocket.onmessage = async function (e) {
                 interval = setInterval(sendRound2, waitTime);
             }
         }
-        console.log(round2new);
         if (round2new[0] < 0) {
             clearInterval(interval);
             round2started = false;
@@ -129,6 +126,11 @@ chatSocket.onmessage = async function (e) {
         if (data.username === username) {
             isHost = true;
         }
+    } else if(data.message === "?empty"){
+        confetti.start();
+        document.getElementById("round3message").innerText = "The deck is out of cards, good luck getting home...";
+        await timeout(10000);
+        window.location.replace("https://bussen.vdhorst.dev");
     } else if (data.message === "?finished") {
         confetti.start();
         await timeout(10000);
@@ -457,12 +459,8 @@ function getNumber(card) {
 function checkMove(card, move) {
     let previouscard = document.getElementById("busc" + (round3Card - 1)).src;
     previouscard = previouscard.substring(previouscard.indexOf("cards/") + 6, previouscard.indexOf(".jpg"));
-    console.log(previouscard);
-    console.log(move);
     switch (move) {
         case "up":
-            console.log(getNumber(card));
-            console.log(getNumber(previouscard));
             return getNumber(card) > getNumber(previouscard);
         case "down":
             return getNumber(card) < getNumber(previouscard);

@@ -54,7 +54,7 @@ class ChatConsumer(WebsocketConsumer):
         username = text_data_json['username']
 
         if message == '?adduser':
-            if username not in users[rooms.index(self.room_group_name)]:
+            if username not in users[rooms.index(self.room_group_name)] and "#" not in username and "server" not in username:
                 users[rooms.index(self.room_group_name)].append(username)
                 self.send(text_data=json.dumps({
                     'message': "Okay",
@@ -80,7 +80,6 @@ class ChatConsumer(WebsocketConsumer):
 
         elif message == "?round1":
             next_username, turn = letsgo(self)
-            print(next_username)
             if next_username != "done":
                 async_to_sync(self.channel_layer.group_send)(
                     self.room_group_name,
@@ -102,7 +101,6 @@ class ChatConsumer(WebsocketConsumer):
                     }
                 )
         elif message == "?round2":
-            # if round2[rooms.index(self.room_group_name)] < 15:
             card = random.choice(cards[rooms.index(self.room_group_name)])
             cards[rooms.index(self.room_group_name)].remove(card)
             async_to_sync(self.channel_layer.group_send)(
@@ -122,7 +120,6 @@ class ChatConsumer(WebsocketConsumer):
                     'username': username,
                 }
             )
-            # round2[rooms.index(self.room_group_name)] += 1
         elif message == "?round3":
             cards[rooms.index(self.room_group_name)] = create_cards()
             async_to_sync(self.channel_layer.group_send)(
@@ -195,17 +192,27 @@ class ChatConsumer(WebsocketConsumer):
             )
 
         elif message == "?reset":
-            card = random.choice(cards[rooms.index(self.room_group_name)])
-            cards[rooms.index(self.room_group_name)].remove(card)
-            async_to_sync(self.channel_layer.group_send)(
-                self.room_group_name,
-                {
-                    'type': 'chat_message',
-                    'message': "?card",
-                    'username': "#reset",
-                    'card': card
-                }
-            )
+            if len(cards[rooms.index(self.room_group_name)]) == 0:
+                async_to_sync(self.channel_layer.group_send)(
+                    self.room_group_name,
+                    {
+                        'type': 'chat_message',
+                        'message': "?empty",
+                        'username': "server",
+                    }
+                )
+            else:
+                card = random.choice(cards[rooms.index(self.room_group_name)])
+                cards[rooms.index(self.room_group_name)].remove(card)
+                async_to_sync(self.channel_layer.group_send)(
+                    self.room_group_name,
+                    {
+                        'type': 'chat_message',
+                        'message': "?card",
+                        'username': "#reset",
+                        'card': card
+                    }
+                )
         elif message == "?question":
             card = random.choice(cards[rooms.index(self.room_group_name)])
             cards[rooms.index(self.room_group_name)].remove(card)
@@ -250,7 +257,6 @@ class ChatConsumer(WebsocketConsumer):
                     'username': username,
                 }
             )
-
 
     # Receive message from room group
     def chat_message(self, event):
@@ -321,8 +327,8 @@ def letsgo(self):
         user[self_index] += 1
         return users[self_index][user[self_index] - 1], question[self_index]
 
+
 def remove(self):
-    del startArray[rooms.index(self.room_group_name)]
     del users[rooms.index(self.room_group_name)]
     del question[rooms.index(self.room_group_name)]
     del user[rooms.index(self.room_group_name)]
@@ -332,9 +338,10 @@ def remove(self):
     del cardsleft[rooms.index(self.room_group_name)]
     rooms.remove(self.room_group_name)
 
+
 def create_cards():
     deck = []
     for s in colors:
-        for i in range(1, 14):
+        for i in range(2, 15):
             deck.append(s + str(i))
     return deck
