@@ -7,6 +7,7 @@ let answers = [["Black", "Red", "Color neutral"], ["Higher", "Lower", "Equal"], 
 let next = false;
 let cards = [];
 let answer;
+let players = 1;
 let question = 0;
 let started = false;
 let round2started = false;
@@ -17,7 +18,7 @@ let round2old = [4, 4];
 let round2new = [4, 4];
 let numberofplaceBefore = [0, 1, 3, 6, 10];
 let placedCards = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], []];
-let waitTime = 10000;
+let waitTime = 15000;
 let round3Card = 1;
 let isPlaying = "";
 const timeout = async ms => new Promise(res => setTimeout(res, ms));
@@ -131,7 +132,10 @@ chatSocket.onmessage = async function (e) {
         if (data.username === username) {
             isHost = true;
         }
-    } else if (data.message === "?empty") {
+    } else if (data.message === "?players"){
+        players = data.number;
+        document.getElementById("playercount").innerText = "There are currently " + players.toString() + " players in this room";
+    }else if (data.message === "?empty") {
         confetti.start();
         document.getElementById("round3message").innerText = "The deck is out of cards, good luck getting home...";
         await timeout(10000);
@@ -201,7 +205,7 @@ chatSocket.onmessage = async function (e) {
             } else {
                 document.getElementById("busc" + round3Card).src = "/static/media/cards/" + data.card + ".jpg";
                 if (checkMove(data.card, data.move)) {
-                    document.getElementById("round3message").innerText = "Correct! nect card";
+                    document.getElementById("round3message").innerText = "Correct! next card";
                     selectCard(round3Card, "hidden");
                     round3Card++;
                     if (round3Card > 5) {

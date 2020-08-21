@@ -25,7 +25,7 @@ class ChatConsumer(WebsocketConsumer):
         # Join room group
         async_to_sync(self.channel_layer.group_add)(
             self.room_group_name,
-            self.channel_name
+            self.channel_name,
         )
         if self.room_group_name not in rooms:
             rooms.append(self.room_group_name)
@@ -59,6 +59,15 @@ class ChatConsumer(WebsocketConsumer):
                 self.send(text_data=json.dumps({
                     'message': "Okay",
                 }))
+                async_to_sync(self.channel_layer.group_send)(
+                    self.room_group_name,
+                    {
+                        'type': 'chat_message',
+                        'message': "?players",
+                        'username': 'server',
+                        'number': len(users[rooms.index(self.room_group_name)]),
+                    }
+                )
             else:
                 self.send(text_data=json.dumps({
                     'message': "Nope",
@@ -314,6 +323,13 @@ class ChatConsumer(WebsocketConsumer):
                 'card': card,
                 'lie': lie,
                 'looked': looked
+            }))
+        elif message == "?players":
+            NoOfPlayers = event['number']
+            self.send(text_data=json.dumps({
+                'message': message,
+                'username': username,
+                'number': NoOfPlayers
             }))
         else:
             # Send message to WebSocket
