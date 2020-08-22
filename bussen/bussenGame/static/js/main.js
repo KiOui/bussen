@@ -43,9 +43,9 @@ const observer = new IntersectionObserver(callback, {
 
 function callback(){
     if(!isStuck){
-        document.getElementById("cardsTitle").style.visibility = "hidden";
+        document.getElementById("cardsTitle").className = "hidden";
     }else{
-        document.getElementById("cardsTitle").style.visibility = "visible";
+        document.getElementById("cardsTitle").className = "visible";
     }
     isStuck=!isStuck;
 }
