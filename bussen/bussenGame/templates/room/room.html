@@ -217,9 +217,8 @@
         <h1 id="isPlaying"></h1>
     </div>
 </div>
-</body>
-<footer id="yourCards" class="owncards">
-    <H1 style="color: white">Your cards</H1>
+<div id="yourCards" class="owncards">
+    <H1 id="cardsTitle" style="color: white">Your cards</H1>
     <div id="cards" class="w3-row w3-container w3-center">
         <div class="w3-col s3 w3-container">
             {% load static %}
@@ -238,6 +237,7 @@
             <img class="card w3-round-large" id="c3" src="{% static 'media/cards/back.jpg' %}">
         </div>
     </div>
-</footer>
+</div>
+</body>
 
 </html>

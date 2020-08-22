@@ -66,11 +66,14 @@ body {
 .owncards {
     padding-bottom: 80px;
     padding-top: 20px;
+    /*z-index: 2;*/
+    /*overflow: auto;*/
+}
+
+.sticky {
     position: -webkit-sticky;
     position: sticky;
     bottom: -25%;
-    /*z-index: 2;*/
-    /*overflow: auto;*/
 }
 
 .image {

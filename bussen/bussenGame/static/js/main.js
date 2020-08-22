@@ -21,6 +21,7 @@ let placedCards = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], []];
 let waitTime = 15000;
 let round3Card = 1;
 let isPlaying = "";
+let isStuck = false;
 const timeout = async ms => new Promise(res => setTimeout(res, ms));
 
 const chatSocket = new ReconnectingWebSocket(
@@ -35,6 +36,19 @@ $.ajaxSetup({
     cache: true
 });
 
+const observer = new IntersectionObserver(callback, {
+  rootMargin: '-1px 0px 0px 0px',
+  threshold: [0, 1],
+});
+
+function callback(){
+    if(!isStuck){
+        document.getElementById("cardsTitle").style.visibility = "hidden";
+    }else{
+        document.getElementById("cardsTitle").style.visibility = "visible";
+    }
+    isStuck=!isStuck;
+}
 
 chatSocket.onopen = function (e) {
     modal.style.display = "block";
@@ -320,7 +334,6 @@ function checkPlacedCard(user) {
         let index = 0;
         let cardvalue = document.getElementById("layer" + round2old[0] + "-" + round2old[1]).src;
         let count = 0;
-        console.log(placedCards);
         placedCards[numberofplaceBefore[round2old[0]] + round2old[1]].forEach((v) => (v === user && count++));
         cardvalue = cardvalue.substring(cardvalue.indexOf("cards/") + 6, cardvalue.indexOf(".jpg"));
         if (cardvalue !== "back" && user !== username) {
@@ -389,6 +402,7 @@ async function waitForServerCard() {
 function removeButton() {
     document.getElementById("room-start").style.display = "none";
     document.getElementById("questions").style.display = "block";
+    document.getElementById("playercount").style.display = "none";
 }
 
 function toggleQuestions(property) {
@@ -428,7 +442,8 @@ function startRound2() {
     toggleQuestions("none");
     document.getElementById("turn-question").style.display = "none";
     document.getElementById("text-question").style.display = "none";
-
+    document.getElementById("yourCards").classList.add("sticky");
+    observer.observe(document.querySelector("#yourCards"));
     for (let k = 0; k < 4; k++) {
         document.getElementById("c" + k).onclick = function () {
             if (document.getElementById("c" + k).src !== (window.location.protocol + "//" + window.location.host + "/static/media/cards/back.jpg")) {
