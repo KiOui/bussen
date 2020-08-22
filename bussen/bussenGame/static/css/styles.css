@@ -1,11 +1,12 @@
 
 body {
     background-color: #e62272;
-    overflow: hidden;
+    /*overflow: auto;*/
     text-align: center;
     font-family: oswald, sans-serif;
     color: white;
     min-height: 100vh;
+    /*z-index: auto;*/
 }
 
 ::-webkit-scrollbar {
@@ -38,9 +39,12 @@ body {
 }
 
 .card {
-    max-width: 90%;
+    max-width: 70%;
     margin: auto;
     margin-top: 10%;
+    -moz-box-shadow: 1px 2px 3px rgba(0,0,0,.5);
+    -webkit-box-shadow: 1px 2px 3px rgba(0,0,0,.5);
+    box-shadow: 1px 2px 3px rgba(0,0,0,.5);
 }
 
 .cellHolder {
@@ -48,9 +52,25 @@ body {
     position: relative;
 }
 
+.visible {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 0.1s linear;
+}
+.hidden {
+  visibility: hidden;
+  opacity: 0;
+  transition: visibility 0s 2s, opacity 0.5s linear;
+}
+
 .owncards {
-    margin-bottom: 80px;
-    margin-top: 20px;
+    padding-bottom: 80px;
+    padding-top: 20px;
+    position: -webkit-sticky;
+    position: sticky;
+    bottom: -25%;
+    /*z-index: 2;*/
+    /*overflow: auto;*/
 }
 
 .image {
@@ -121,6 +141,9 @@ ul:hover{
 .cardPyramid {
     width: 15vw;
     margin: 2vw auto 1%;
+    -moz-box-shadow: 1px 2px 3px rgba(0,0,0,.5);
+    -webkit-box-shadow: 1px 2px 3px rgba(0,0,0,.5);
+    box-shadow: 1px 2px 3px rgba(0,0,0,.5);
 }
 
 .middle {
@@ -138,7 +161,7 @@ ul:hover{
 .modal {
     display: none; /* Hidden by default */
     position: fixed; /* Stay in place */
-    z-index: 1; /* Sit on top */
+    z-index: 10; /* Sit on top */
     left: 0;
     top: 0;
     width: 100%; /* Full width */
