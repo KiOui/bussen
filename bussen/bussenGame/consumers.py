@@ -75,19 +75,22 @@ class ChatConsumer(WebsocketConsumer):
                     'message': "Nope",
                 }))
         elif message == "/closing_screen":
-            users[rooms.index(self.room_group_name)].remove(username)
-            if len(users[rooms.index(self.room_group_name)]) == 0:
-                remove(self)
-            elif username == hosts[rooms.index(self.room_group_name)]:
-                hosts[rooms.index(self.room_group_name)] = random.choice(users[rooms.index(self.room_group_name)])
-                async_to_sync(self.channel_layer.group_send)(
-                    self.room_group_name,
-                    {
-                        'type': 'chat_message',
-                        'message': "?newhost",
-                        'username': hosts[rooms.index(self.room_group_name)],
-                    }
-                )
+            try:
+                users[rooms.index(self.room_group_name)].remove(username)
+                if len(users[rooms.index(self.room_group_name)]) == 0:
+                    remove(self)
+                elif username == hosts[rooms.index(self.room_group_name)]:
+                    hosts[rooms.index(self.room_group_name)] = random.choice(users[rooms.index(self.room_group_name)])
+                    async_to_sync(self.channel_layer.group_send)(
+                        self.room_group_name,
+                        {
+                            'type': 'chat_message',
+                            'message': "?newhost",
+                            'username': hosts[rooms.index(self.room_group_name)],
+                        }
+                    )
+            except:
+                print("Goodbye")
         elif message == "?start":
             started[rooms.index(self.room_group_name)] = True
         elif message == "?round1":

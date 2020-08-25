@@ -43,9 +43,9 @@ const observer = new IntersectionObserver(callback, {
 
 function callback(){
     if(!isStuck){
-        document.getElementById("cardsTitle").className = "hidden";
-    }else{
         document.getElementById("cardsTitle").className = "visible";
+    }else{
+        document.getElementById("cardsTitle").className = "hidden";
     }
     isStuck=!isStuck;
 }
@@ -67,7 +67,7 @@ chatSocket.onopen = function (e) {
 
 chatSocket.onmessage = async function (e) {
     const data = JSON.parse(e.data);
-    console.log(data);
+    //console.log(data);
     if (data.message.startsWith('?round1')) {
         removeButton();
         if (!started) {
