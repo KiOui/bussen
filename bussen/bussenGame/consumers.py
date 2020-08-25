@@ -14,7 +14,7 @@ round2 = []
 hosts = []
 cardsleft = []
 colors = ['h', 'd', 's', 'c']
-
+started = []
 
 class ChatConsumer(WebsocketConsumer):
 
@@ -36,7 +36,9 @@ class ChatConsumer(WebsocketConsumer):
             round2.append(0)
             hosts.append("X")
             cardsleft.append([])
-        self.accept()
+            started.append(False)
+        if not started[rooms.index(self.room_group_name)]:
+            self.accept()
 
     def disconnect(self, close_code):
         # Leave room group
@@ -86,7 +88,8 @@ class ChatConsumer(WebsocketConsumer):
                         'username': hosts[rooms.index(self.room_group_name)],
                     }
                 )
-
+        elif message == "?start":
+            started[rooms.index(self.room_group_name)] = True
         elif message == "?round1":
             next_username, turn = letsgo(self)
             if next_username != "done":

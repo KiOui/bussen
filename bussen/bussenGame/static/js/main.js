@@ -67,7 +67,7 @@ chatSocket.onopen = function (e) {
 
 chatSocket.onmessage = async function (e) {
     const data = JSON.parse(e.data);
-
+    console.log(data);
     if (data.message.startsWith('?round1')) {
         removeButton();
         if (!started) {
@@ -476,6 +476,10 @@ document.getElementById("answer-submit").onclick = function () {
 
 
 document.getElementById("room-start").onclick = function (e) {
+    chatSocket.send(JSON.stringify({
+        'message': "?start",
+        'username': username
+    }));
     chatSocket.send(JSON.stringify({
         'message': "?round1",
         'username': username
