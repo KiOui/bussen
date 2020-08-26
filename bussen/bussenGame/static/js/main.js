@@ -24,7 +24,7 @@ let isPlaying = "";
 let isStuck = false;
 const timeout = async ms => new Promise(res => setTimeout(res, ms));
 
-const chatSocket = new ReconnectingWebSocket(
+const chatSocket = new WebSocket(
     'wss://'
     + window.location.host
     + '/ws/room/'
@@ -582,7 +582,6 @@ function checkAnswer(card) {
                         }
                     }
                     return tempArr.length === 4;
-
             }
     }
 }

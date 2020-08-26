@@ -48,6 +48,7 @@
                     if(roomName !== "" && roomName != null){
                         roomName = roomName.replace(/\s/g,'');
                         roomName = roomName.toLowerCase();
+                        roomName = roomName.replace('/','');
                         window.location.pathname =  roomName + '/';
                     }
                 }
