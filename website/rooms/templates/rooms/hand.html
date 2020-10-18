@@ -1,0 +1,18 @@
+{% load static game %}
+
+{% if not refresh %}
+    <link rel="stylesheet" href="{% static 'rooms/css/hand.css' %}"/>
+    <div class="d-flex align-content-between justify-content-center" id="hand-container">
+{% endif %}
+    {% for card in player.current_hand.no_empty_card_list %}
+        <div class="single-card-container mx-4" onclick="put_card('{{ card.suit }}', '{{ card.rank }}')">
+            {% render_card card.suit card.rank %}
+        </div>
+    {% endfor %}
+{% if not refresh %}
+    </div>
+    <script>
+        REFRESH_PLAYER_HAND = "{% url 'rooms:game_player_hand' game=player.current_game %}"
+    </script>
+    <script src="{% static 'rooms/js/hand.js' %}"></script>
+{% endif %}

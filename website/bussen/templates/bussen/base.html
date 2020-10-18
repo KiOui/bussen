@@ -1,0 +1,31 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>
+        {% block title %}Bussen: Online Drinking game{% endblock %}
+    </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css2?family=Neucha&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'bussen/css/bootstrap/bootstrap.css' %}"/>
+    {% block styles %}{% endblock %}
+    <script>
+        CSRF_TOKEN = "{{ csrf_token }}";
+    </script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js" crossorigin="anonymous"></script>
+    <script src="https://kit.fontawesome.com/cb8ec32f27.js" crossorigin="anonymous"></script>
+    <script src="{% static 'bussen/js/base.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'bussen/css/base.css' %}"/>
+</head>
+<body>
+    {% block header %}
+    {% endblock %}
+    <div class="page">
+        {% block page %}{% endblock %}
+    </div>
+    {% block footer %}
+    {% endblock %}
+    {% block js %}{% endblock %}
+</body>
+</html>

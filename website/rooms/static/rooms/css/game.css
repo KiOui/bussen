@@ -1,0 +1,7 @@
+.single-card-container {
+    max-width: 20%;
+}
+
+.single-card-container img {
+    box-shadow: 1px 2px 3px rgba(0,0,0,0.5);
+}

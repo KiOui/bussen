@@ -1,0 +1,42 @@
+{% load static game %}
+
+{% if not refresh %}
+    <link rel="stylesheet" href="{% static 'rooms/css/pyramid.css' %}"/>
+    <div class="container d-flex flex-column" id="pyramid-container">
+{% endif %}
+
+{% for pyramid_row in player.current_game.pyramid_list %}
+    <div class="d-flex flex-row justify-content-center align-items-center my-2">
+        {% for card in pyramid_row %}
+            <div class="single-card-container mx-2">
+                {% if card.closed %}
+                    {% render_card None None %}
+                {% else %}
+                    {% render_card card.suit card.rank %}
+                    {% if card.pile %}
+                        <div class="player-names">
+                            {% if player.current_game.cards_on_pyramid_list_player_ids|length > 0 %}
+                                <p>Cards on this card:</p>
+                            {% endif %}
+                            {% for card_on_pile in player.current_game.cards_on_pyramid_list_player_ids %}
+                                {% if card_on_pile.player != player %}
+                                    <div class="btn btn-primary player-name mb-1" onclick="call_card('{{ card_on_pile.random_id }}');">
+                                        {{ card_on_pile.player }}
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+{% endfor %}
+
+{% if not refresh %}
+    </div>
+    <script>
+        REFRESH_GAME_PYRAMID = "{% url 'rooms:game_pyramid' game=player.current_game %}"
+    </script>
+    <script src="{% static 'rooms/js/pyramid.js' %}"></script>
+{% endif %}

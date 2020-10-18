@@ -1,0 +1,33 @@
+{% extends 'bussen/base.html' %}
+{% load static game %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{% static 'rooms/css/enter.css' %}"/>
+    <link rel="stylesheet" href="{% static 'bussen/css/forms.css' %}"/>
+    <link rel="stylesheet" href="{% static 'rooms/css/toastr.css' %}"/>
+{% endblock %}
+
+{% block page %}
+<div class="container-lg min-vh-100 my-5">
+    <div class="container text-center text-white" id="game-container">
+        <h1 class="mb-5">Phase 1: Question round</h1>
+        <div class="container">
+            {% render_player_question player %}
+        </div>
+        <div class="container">
+            <h2 class="mb-4">Your cards</h2>
+            <div class="container d-flex align-content-center justify-content-center">
+                {% render_game_cards player %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+    <script>
+        GAME_NAME = "{{ game }}";
+    </script>
+    <script src="{% static 'rooms/js/game_phase_1.js' %}"></script>
+    <script src="{% static 'rooms/js/toastr.js' %}"></script>
+{% endblock %}

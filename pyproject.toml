@@ -1,0 +1,33 @@
+[tool.poetry]
+name = "bussen"
+version = "0.1.0"
+description = "An online drinking game"
+authors = [""]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+Django = "^3.1.2"
+channels = "^2.4.0"
+channels-redis = "^3.1.0"
+pyCardDeck = "^1.4.0"
+coverage = "^5.3"
+
+[tool.poetry.dev-dependencies]
+pydocstyle = "^5.0.2"
+black = "^19.10b0"
+flake8 = "^3.7.9"
+
+[tool.black]
+line-length = 119
+target-version = ["py37"]
+exclude = '''
+/(
+  migrations
+  | website/tosti/settings
+)/
+'''
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

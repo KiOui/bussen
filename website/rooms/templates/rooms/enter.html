@@ -1,0 +1,38 @@
+{% extends 'bussen/base.html' %}
+{% load static %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{% static 'rooms/css/enter.css' %}"/>
+    <link rel="stylesheet" href="{% static 'bussen/css/forms.css' %}"/>
+{% endblock %}
+
+{% block page %}
+<div class="container-lg min-vh-100 d-flex align-items-center justify-content-center">
+    <div class="w-100 flex-row d-flex flex-nowrap justify-content-between">
+
+        <div class="">
+            <img class="logo" src="{% static 'rooms/img/thalia.svg' %}">
+        </div>
+        <div class="m-auto title-block">
+            <div class="text-white">
+                <h1>Welcome to the Thalia bussen website!</h1>
+            </div>
+
+            <div class="container">
+                <p class="text-white">Which room would you like to enter?</p>
+
+                <form method="POST">
+                    {% csrf_token %}
+                    {{ game_creation_form }}
+                    <input type="submit" class="btn btn-primary" value="Create game"/>
+                </form>
+            </div>
+        </div>
+
+        <div>
+            <img class="logo" src="{% static 'rooms/img/thalia.svg' %}">
+        </div>
+
+    </div>
+</div>
+{% endblock %}
