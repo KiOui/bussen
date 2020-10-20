@@ -11,6 +11,7 @@ from .templatetags.game import (
     render_pyramid,
     render_player_hand,
     render_pyramid_header,
+    render_bus,
 )
 
 
@@ -139,6 +140,10 @@ class GameView(TemplateView):
             return redirect("rooms:game_room_phase_2", game=game)
         elif player.current_game.phase == Game.PHASE_3:
             return redirect("rooms:game_room_phase_3", game=game)
+        elif player.current_game.phase == Game.PHASE_FINISHED:
+            player.current_game = None
+            player.save()
+            return redirect("rooms:redirect", game=game)
         else:
             return redirect("rooms:redirect")
 
@@ -182,7 +187,29 @@ class GamePhase2View(TemplateView):
         player = get_player_from_request(request)
 
         if not player or player.current_game != game or game.phase != Game.PHASE_2:
-            return redirect("rooms:game_room")
+            return redirect("rooms:game_room", game=game)
+        else:
+            return render(request, self.template_name, {"game": game, "player": player})
+
+
+class GamePhase3View(TemplateView):
+    """Game phase 3 view."""
+
+    template_name = "rooms/game_phase_3.html"
+
+    def get(self, request, **kwargs):
+        """
+        GET request for GameView.
+
+        :param request: the request
+        :param kwargs: keyword arguments
+        :return: a render of the game page
+        """
+        game = kwargs.get("game")
+        player = get_player_from_request(request)
+
+        if not player or player.current_game != game or game.phase != Game.PHASE_3:
+            return redirect("rooms:game_room", game=game)
         else:
             return render(request, self.template_name, {"game": game, "player": player})
 
@@ -362,3 +389,26 @@ class PyramidHeaderRefreshView(TemplateView):
             render_pyramid_header({"request": request}, player, refresh=True)
         )
         return JsonResponse({"data": hand})
+
+
+class BusRefreshView(TemplateView):
+    """Refresh the bus view."""
+
+    template_name = "rooms/bus.html"
+
+    def post(self, request, **kwargs):
+        """
+        POST request for refreshing the player hand.
+
+        :param request: the request
+        :param kwargs: keyword arguments
+        :return: The orders in the following JSON format:
+            data: [pyramid header]
+        """
+        game = kwargs.get("game")
+        player = get_player_from_request(request)
+        if player is None or player.current_game != game:
+            return Http404()
+
+        bus = get_template(self.template_name).render(render_bus({"request": request}, player, refresh=True))
+        return JsonResponse({"data": bus})

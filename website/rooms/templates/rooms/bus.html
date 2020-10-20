@@ -1,0 +1,39 @@
+{% load static game %}
+
+{% if not refresh %}
+    <link rel="stylesheet" href="{% static 'rooms/css/bus.css' %}"/>
+    <div class="container d-flex flex-column" id="bus-container">
+{% endif %}
+    <div class="d-flex flex-row justify-content-center align-items-center my-2">
+        {% for card in player.current_game.card_list_with_properties %}
+            <div class="single-card-container mx-2">
+                {% if card.closed %}
+                    {% render_card None None %}
+                {% else %}
+                    {% render_card card.suit card.rank %}
+                {% endif %}
+
+                {% if player.current_game.current_player_obj == player and card.active and player.current_game.cards_left %}
+                    <div class="options">
+                        <div class="btn btn-primary mb-1" onclick="guess('higher');">
+                            Higher
+                        </div>
+                        <div class="btn btn-primary mb-1" onclick="guess('lower');">
+                            Lower
+                        </div>
+                        <div class="btn btn-primary mb-1" onclick="guess('same');">
+                            The same
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+
+{% if not refresh %}
+    </div>
+    <script>
+        REFRESH_GAME_BUS = "{% url 'rooms:game_bus' game=player.current_game %}"
+    </script>
+    <script src="{% static 'rooms/js/bus.js' %}"></script>
+{% endif %}

@@ -27,17 +27,26 @@ class Game(models.Model):
     PYRAMID_SIZE_CARDS = sum(PYRAMID_SIZE)
     MAXIMUM_AMOUNT_OF_PLAYERS = math.floor((52 - PYRAMID_SIZE_CARDS) / 4)
 
+    BUS_CARD_AMOUNT = 6
+
     PHASE_OPEN = 0
     PHASE_1 = 1
     PHASE_2 = 2
     PHASE_3 = 3
+    PHASE_FINISHED = 4
 
     HEARTS = "Hearts"
     SPADES = "Spades"
     DIAMONDS = "Diamonds"
     CLUBS = "Clubs"
 
-    PHASES = ((PHASE_OPEN, "Open for participants"), (PHASE_1, "Phase 1"), (PHASE_2, "Phase 2"), (PHASE_3, "Phase 3"))
+    PHASES = (
+        (PHASE_OPEN, "Open for participants"),
+        (PHASE_1, "Phase 1"),
+        (PHASE_2, "Phase 2"),
+        (PHASE_3, "Phase 3"),
+        (PHASE_FINISHED, "Finished"),
+    )
 
     name = models.CharField(max_length=128, unique=True)
     created = models.DateTimeField(auto_now_add=True)
@@ -45,10 +54,12 @@ class Game(models.Model):
     phase = models.IntegerField(choices=PHASES, default=0, null=False, blank=False)
     current_player = models.IntegerField(null=True, blank=False)
     slug = models.SlugField(null=False, blank=False, unique=True, max_length=256)
-    pyramid = models.TextField(default="[]")
+    card_list = models.TextField(default="[]")
     cards_on_pyramid = models.TextField(default="[]")
     current_card = models.IntegerField(
-        null=True, blank=False, validators=[MaxValueValidator(PYRAMID_SIZE_CARDS), MinValueValidator(0)]
+        null=True,
+        blank=False,
+        validators=[MaxValueValidator(max(PYRAMID_SIZE_CARDS, BUS_CARD_AMOUNT)), MinValueValidator(0)],
     )
 
     def __str__(self):
@@ -117,7 +128,14 @@ class Game(models.Model):
         self.save()
         return card
 
-    def reset_deck(self):
+    @property
+    def cards_left(self):
+        """Check if cards are left in the deck."""
+        current_deck = Deck()
+        current_deck.load(self.state)
+        return current_deck.cards_left > 0
+
+    def reset_deck(self, save=True):
         """
         Reset the card deck to the default deck.
 
@@ -126,7 +144,8 @@ class Game(models.Model):
         default_deck = Deck(cards=self.generate_deck(), reshuffle=False)
         default_deck.shuffle()
         self.state = default_deck.export("JSON")
-        self.save()
+        if save:
+            self.save()
 
     def start_phase_1(self):
         """
@@ -169,6 +188,72 @@ class Game(models.Model):
         self.save()
         return True
 
+    def start_phase_3(self):
+        """
+        Start Phase 3 of the game.
+
+        :return: True if Phase 3 has been started or was already running, False otherwise
+        """
+        if self.phase == self.PHASE_3:
+            return True
+        elif self.phase != self.PHASE_2:
+            return False
+
+        self.phase = self.PHASE_3
+        self.save()
+
+        player_lost = 0
+
+        for i in range(0, len(self.ordered_players)):
+            if len(self.ordered_players[player_lost].current_hand.to_list()) < len(
+                self.ordered_players[i].current_hand.to_list()
+            ):
+                player_lost = i
+
+        for player in self.ordered_players:
+            player.current_hand.delete()
+
+        self.current_player = player_lost
+        self.current_card = 0
+        self.reset_deck(save=False)
+        card_list = list()
+        for _ in range(0, self.BUS_CARD_AMOUNT):
+            card = self.get_card()
+            card_list.append({"suit": card.suit, "rank": card.rank, "closed": True})
+        self.card_list = json.dumps(card_list)
+        self.save()
+
+    def phase3_guess(self, guess, player):
+        """Handle phase 3 guess."""
+        if not self.cards_left or self.phase != self.PHASE_3 or self.ordered_players[self.current_player] != player:
+            return None
+
+        card = self.get_card()
+        if guess == "higher":
+            guess_correct = card_rank_to_int(card.rank) > card_rank_to_int(self.current_bus_card["rank"])
+        elif guess == "lower":
+            guess_correct = card_rank_to_int(card.rank) < card_rank_to_int(self.current_bus_card["rank"])
+        else:
+            guess_correct = card_rank_to_int(card.rank) == card_rank_to_int(self.current_bus_card["rank"])
+        self.phase3_update_game_state(card, guess_correct)
+        return guess_correct
+
+    def phase3_update_game_state(self, next_card, guessed_correctly, save=True):
+        """Update phase 3 game state."""
+        card_list = json.loads(self.card_list)
+        card_list[self.current_card] = {"suit": next_card.suit, "rank": next_card.rank, "closed": False}
+        self.card_list = json.dumps(card_list)
+        if guessed_correctly:
+            self.current_card += 1
+        else:
+            self.current_card = 0
+
+        if not self.cards_left or self.current_card >= self.BUS_CARD_AMOUNT:
+            self.phase = self.PHASE_FINISHED
+
+        if save:
+            self.save()
+
     def initialise_pyramid(self, save=True):
         """
         Initialise the pyramid for phase 2.
@@ -183,7 +268,7 @@ class Game(models.Model):
                 new_card = self.get_card()
                 pyramid_row.append({"suit": new_card.suit, "rank": new_card.rank})
             pyramid.append(pyramid_row)
-        self.pyramid = json.dumps(pyramid)
+        self.card_list = json.dumps(pyramid)
         if save:
             self.save()
 
@@ -443,7 +528,7 @@ class Game(models.Model):
         :return: the pyramid list with "closed" and "pile" dictionary keys indicating wheter a card is closed or the
         current pile card
         """
-        pyramid_list = json.loads(self.pyramid)
+        pyramid_list = json.loads(self.card_list)
         closed_cards = self.PYRAMID_SIZE_CARDS - (self.current_card + 1 if self.current_card is not None else 0)
         for pyramid_row in pyramid_list:
             for card in pyramid_row:
@@ -462,9 +547,15 @@ class Game(models.Model):
         return pyramid_list
 
     @property
+    def current_bus_card(self):
+        """Get the current bus card."""
+        card_list = json.loads(self.card_list)
+        return card_list[self.current_card]
+
+    @property
     def current_pyramid_card(self):
         """Get the current pyramid card."""
-        pyramid_list = json.loads(self.pyramid)
+        pyramid_list = json.loads(self.card_list)
         closed_cards = self.PYRAMID_SIZE_CARDS - (self.current_card + 1 if self.current_card is not None else 0)
         for pyramid_row in pyramid_list:
             for card in pyramid_row:
@@ -480,14 +571,14 @@ class Game(models.Model):
                 self.current_card = 0
                 self.reset_cards_on_pyramid(save=False)
                 self.save()
+                return True
             elif self.current_card == Game.PYRAMID_SIZE_CARDS - 1:
-                # TODO: Move to phase 3
-                pass
+                return self.start_phase_3()
             else:
                 self.current_card += 1
                 self.reset_cards_on_pyramid(save=False)
                 self.save()
-
+                return True
         return False
 
     @property
@@ -560,6 +651,17 @@ class Game(models.Model):
                     return True, card["player"]
                 return True, None
         return False, None
+
+    @property
+    def card_list_with_properties(self):
+        """Get card list with properties."""
+        card_list = json.loads(self.card_list)
+        for i in range(0, len(card_list)):
+            if i == self.current_card:
+                card_list[i]["active"] = True
+            else:
+                card_list[i]["active"] = False
+        return card_list
 
 
 class Hand(models.Model):

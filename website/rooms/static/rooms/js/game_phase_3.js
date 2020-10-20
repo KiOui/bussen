@@ -5,28 +5,13 @@ if (window.location.protocol === 'https:') {
 
 let alive_timer = null;
 
-let endpoint = wsStart + window.location.host + '/rooms/phase2/' + GAME_NAME + '/';
+let endpoint = wsStart + window.location.host + '/rooms/phase3/' + GAME_NAME + '/';
 let socket = null;
 
-function put_card(suit, rank) {
+function guess(type) {
     socket.send(JSON.stringify({
-        "type": "phase2_card",
-        "suit": suit,
-        "rank": rank
-    }));
-}
-
-function call_card(random_id) {
-    socket.send(JSON.stringify({
-        "type": "phase2_call",
-        "id": random_id
-    }));
-}
-
-function next_card(index) {
-    socket.send(JSON.stringify({
-        "type": "phase2_next_card",
-        "index": index
+        "type": "phase3_guess",
+        "guess": type
     }));
 }
 
@@ -35,9 +20,10 @@ function handle_event(event) {
     let data = JSON.parse(event.data);
     if (data.type !== null) {
         if (data.type === "refresh") {
-            refresh_hand();
-            refresh_pyramid();
-            refresh_pyramid_header();
+            refresh_bus();
+        }
+        else if (data.type === "celebrate") {
+
         }
         else if (data.type === "message") {
             console.log("message type");

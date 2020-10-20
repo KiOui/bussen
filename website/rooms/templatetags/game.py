@@ -31,6 +31,12 @@ def render_pyramid(context, player, refresh=False):
     return {"player": player, "request": context.get("request"), "refresh": refresh}
 
 
+@register.inclusion_tag("rooms/bus.html", takes_context=True)
+def render_bus(context, player, refresh=False):
+    """Render order footer."""
+    return {"player": player, "request": context.get("request"), "refresh": refresh}
+
+
 @register.inclusion_tag("rooms/hand.html", takes_context=True)
 def render_player_hand(context, player, refresh=False):
     """Render player cards."""

@@ -6,8 +6,8 @@ from rooms.models import Game
 from rooms.services import get_player_from_cookie, decode_message
 
 
-class GamePhase2Consumer(SyncConsumer):
-    """Phase 2 consumer."""
+class GroupConsumer(SyncConsumer):
+    """General group consumer."""
 
     def websocket_connect(self, event):
         """Connect websocket."""
@@ -26,13 +26,11 @@ class GamePhase2Consumer(SyncConsumer):
 
     def add_to_group(self, player):
         """Add a player to the correct group."""
-        hub_websocket_id = self.get_group_name(player.current_game)
-        async_to_sync(self.channel_layer.group_add)(hub_websocket_id, self.channel_name)
+        async_to_sync(self.channel_layer.group_add)(self.get_group_name(player.current_game), self.channel_name)
 
     def remove_from_group(self, player):
         """Remove a player from the group."""
-        hub_websocket_id = self.get_group_name(player.current_game)
-        async_to_sync(self.channel_layer.group_discard)(hub_websocket_id, self.channel_name)
+        async_to_sync(self.channel_layer.group_discard)(self.get_group_name(player.current_game), self.channel_name)
 
     def websocket_receive(self, event):
         """Receive websocket."""
@@ -40,6 +38,86 @@ class GamePhase2Consumer(SyncConsumer):
         player = get_player_from_cookie(player_id_cookie)
         message = decode_message(event)
         self.execute_message(message, player)
+
+    def execute_message(self, message, player):
+        """Execute a message send by a player."""
+        pass
+
+    def send_group_message(self, event):
+        """Send a group message."""
+        self.send({"type": "websocket.send", "text": event["text"]})
+
+    @staticmethod
+    def get_group_name(game):
+        """Get the group name."""
+        return ""
+
+    def accept_connection(self):
+        """Accept the connection."""
+        self.send({"type": "websocket.accept"})
+
+    def send_error_and_disconnect(self, error_msg="An error occurred"):
+        """Send an error message and disconnect."""
+        self.send_error(error_msg=error_msg)
+        self.send({"type": "websocket.disconnect"})
+
+    def send_error(self, error_msg="An error occurred"):
+        """Send an error message."""
+        response = {"type": "error", "message": error_msg}
+        self.send({"type": "websocket.send", "text": json.dumps(response)})
+
+
+class GamePhase3Consumer(GroupConsumer):
+    """Phase 3 consumer."""
+
+    def execute_message(self, message, player):
+        """Execute a message send by a player."""
+        if "type" not in message.keys():
+            return False
+        elif message["type"] == "phase3_guess":
+            hub_websocket_id = self.get_group_name(player.current_game)
+            correct = player.current_game.phase3_guess(message["guess"], player)
+            if correct is not None:
+                if not correct:
+                    async_to_sync(self.channel_layer.group_send)(
+                        hub_websocket_id,
+                        {
+                            "type": "send_group_message",
+                            "text": json.dumps(
+                                {
+                                    "type": "message",
+                                    "color": "red",
+                                    "message": f"{player} guessed incorrectly and must drink",
+                                }
+                            ),
+                        },
+                    )
+
+            if player.current_game.phase == Game.PHASE_FINISHED:
+                async_to_sync(self.channel_layer.group_send)(
+                    hub_websocket_id, {"type": "send_group_message", "text": json.dumps({"type": "celebrate"})}
+                )
+
+                for player in player.current_game.ordered_players:
+                    player.current_game = None
+                    player.save()
+
+            async_to_sync(self.channel_layer.group_send)(
+                hub_websocket_id, {"type": "send_group_message", "text": json.dumps({"type": "refresh"})}
+            )
+
+    @staticmethod
+    def get_group_name(game):
+        """Get the group name."""
+        return f"game_room_phase_3_{game.id}"
+
+    def accept_connection(self):
+        """Accept the connection."""
+        self.send({"type": "websocket.accept"})
+
+
+class GamePhase2Consumer(GroupConsumer):
+    """Phase 2 consumer."""
 
     def execute_message(self, message, player):
         """Execute a message send by a player."""
@@ -94,58 +172,29 @@ class GamePhase2Consumer(SyncConsumer):
                 async_to_sync(self.channel_layer.group_send)(
                     hub_websocket_id, {"type": "send_group_message", "text": json.dumps({"type": "refresh"})}
                 )
-
-    def send_group_message(self, event):
-        """Send a group message."""
-        self.send({"type": "websocket.send", "text": event["text"]})
+                if player.current_game.phase != Game.PHASE_2:
+                    hub_websocket_id = self.get_group_name(player.current_game)
+                    async_to_sync(self.channel_layer.group_send)(
+                        hub_websocket_id,
+                        {
+                            "type": "send_group_message",
+                            "text": json.dumps(
+                                {
+                                    "type": "redirect",
+                                    "url": reverse("rooms:game_room", kwargs={"game": player.current_game}),
+                                }
+                            ),
+                        },
+                    )
 
     @staticmethod
     def get_group_name(game):
         """Get the group name."""
         return f"game_room_phase_2_{game.id}"
 
-    def accept_connection(self):
-        """Accept the connection."""
-        self.send({"type": "websocket.accept"})
 
-
-class GamePhase1Consumer(SyncConsumer):
+class GamePhase1Consumer(GroupConsumer):
     """Phase 1 game consumer."""
-
-    def websocket_connect(self, event):
-        """Connect websocket."""
-        player_id_cookie = self.scope["cookies"].get("player_id", None)
-        player = get_player_from_cookie(player_id_cookie)
-        player.set_online()
-        self.add_to_group(player)
-        self.accept_connection()
-        async_to_sync(self.channel_layer.group_send)(
-            self.get_group_name(player.current_game), {"type": "send_status_update"}
-        )
-
-    def websocket_disconnect(self, code):
-        """Disconnect websocket."""
-        player_id_cookie = self.scope["cookies"].get("player_id", None)
-        player = get_player_from_cookie(player_id_cookie)
-        player.set_offline()
-        self.remove_from_group(player)
-
-    def add_to_group(self, player):
-        """Add player to group."""
-        hub_websocket_id = self.get_group_name(player.current_game)
-        async_to_sync(self.channel_layer.group_add)(hub_websocket_id, self.channel_name)
-
-    def remove_from_group(self, player):
-        """Remove player from group."""
-        hub_websocket_id = self.get_group_name(player.current_game)
-        async_to_sync(self.channel_layer.group_discard)(hub_websocket_id, self.channel_name)
-
-    def websocket_receive(self, event):
-        """Receive websocket."""
-        player_id_cookie = self.scope["cookies"].get("player_id", None)
-        player = get_player_from_cookie(player_id_cookie)
-        message = decode_message(event)
-        self.execute_message(message, player)
 
     def handle_phase1_answer(self, player, value):
         """Handle a phase 1 question answer."""
@@ -215,34 +264,13 @@ class GamePhase1Consumer(SyncConsumer):
                     },
                 )
 
-    def send_status_update(self, event):
-        """Send a status update to all clients."""
-        player_id_cookie = self.scope["cookies"].get("player_id", None)
-        player = get_player_from_cookie(player_id_cookie)
-        game_dict = player.current_game.to_dict()
-        player_hand_dict = player.current_hand.to_list()
-        self.send(
-            {
-                "type": "websocket.send",
-                "text": json.dumps({"type": "game_update", "game": game_dict, "hand": player_hand_dict}),
-            }
-        )
-
-    def send_group_message(self, event):
-        """Send group message."""
-        self.send({"type": "websocket.send", "text": event["text"]})
-
     @staticmethod
     def get_group_name(game):
         """Get group name."""
         return f"game_room_phase_1_{game.id}"
 
-    def accept_connection(self):
-        """Accept connection."""
-        self.send({"type": "websocket.accept"})
 
-
-class HubConsumer(SyncConsumer):
+class HubConsumer(GroupConsumer):
     """Hub consumer."""
 
     def websocket_connect(self, event):
@@ -298,30 +326,6 @@ class HubConsumer(SyncConsumer):
         """Get group name."""
         return f"game_hub_{game.id}"
 
-    def add_to_group(self, player):
-        """Add player to group."""
-        hub_websocket_id = self.get_group_name(player.current_game)
-        async_to_sync(self.channel_layer.group_add)(hub_websocket_id, self.channel_name)
-
-    def remove_from_group(self, player):
-        """Remove player from group."""
-        hub_websocket_id = self.get_group_name(player.current_game)
-        async_to_sync(self.channel_layer.group_discard)(hub_websocket_id, self.channel_name)
-
-    def accept_connection(self):
-        """Accept connection."""
-        self.send({"type": "websocket.accept"})
-
-    def send_error_and_disconnect(self, error_msg="An error occurred"):
-        """Send an error message and disconnect."""
-        self.send_error(error_msg=error_msg)
-        self.send({"type": "websocket.disconnect"})
-
-    def send_error(self, error_msg="An error occurred"):
-        """Send an error message."""
-        response = {"type": "error", "message": error_msg}
-        self.send({"type": "websocket.send", "text": json.dumps(response)})
-
     def send_amount_of_players(self, game):
         """Send the amount of players in the group to the group."""
         amount_of_players = game.get_amount_of_players()
@@ -335,7 +339,3 @@ class HubConsumer(SyncConsumer):
         async_to_sync(self.channel_layer.group_send)(
             self.get_group_name(game), {"type": "send_group_message", "text": json.dumps(response_dict)}
         )
-
-    def send_group_message(self, event):
-        """Send a group message."""
-        self.send({"type": "websocket.send", "text": event["text"]})
