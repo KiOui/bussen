@@ -1,0 +1,111 @@
+{% load static %}
+
+{% if suit is None and rank is None %}
+    <img class="card-img" src="{% static 'bussen/img/cards/back.jpg' %}"/>
+{% elif suit == "Diamonds" and rank == "A" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/d14.jpg' %}"/>
+{% elif suit == "Diamonds" and rank == "2" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/d2.jpg' %}"/>
+{% elif suit == "Diamonds" and rank == "3" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/d3.jpg' %}"/>
+{% elif suit == "Diamonds" and rank == "4" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/d4.jpg' %}"/>
+{% elif suit == "Diamonds" and rank == "5" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/d5.jpg' %}"/>
+{% elif suit == "Diamonds" and rank == "6" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/d6.jpg' %}"/>
+{% elif suit == "Diamonds" and rank == "7" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/d7.jpg' %}"/>
+{% elif suit == "Diamonds" and rank == "8" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/d8.jpg' %}"/>
+{% elif suit == "Diamonds" and rank == "9" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/d9.jpg' %}"/>
+{% elif suit == "Diamonds" and rank == "10" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/d10.jpg' %}"/>
+{% elif suit == "Diamonds" and rank == "J" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/d11.jpg' %}"/>
+{% elif suit == "Diamonds" and rank == "Q" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/d12.jpg' %}"/>
+{% elif suit == "Diamonds" and rank == "K" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/d13.jpg' %}"/>
+{% elif suit == "Spades" and rank == "A" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/s14.jpg' %}"/>
+{% elif suit == "Spades" and rank == "2" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/s2.jpg' %}"/>
+{% elif suit == "Spades" and rank == "3" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/s3.jpg' %}"/>
+{% elif suit == "Spades" and rank == "4" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/s4.jpg' %}"/>
+{% elif suit == "Spades" and rank == "5" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/s5.jpg' %}"/>
+{% elif suit == "Spades" and rank == "6" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/s6.jpg' %}"/>
+{% elif suit == "Spades" and rank == "7" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/s7.jpg' %}"/>
+{% elif suit == "Spades" and rank == "8" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/s8.jpg' %}"/>
+{% elif suit == "Spades" and rank == "9" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/s9.jpg' %}"/>
+{% elif suit == "Spades" and rank == "10" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/s10.jpg' %}"/>
+{% elif suit == "Spades" and rank == "J" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/s11.jpg' %}"/>
+{% elif suit == "Spades" and rank == "Q" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/s12.jpg' %}"/>
+{% elif suit == "Spades" and rank == "K" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/s13.jpg' %}"/>
+{% elif suit == "Hearts" and rank == "A" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/h14.jpg' %}"/>
+{% elif suit == "Hearts" and rank == "2" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/h2.jpg' %}"/>
+{% elif suit == "Hearts" and rank == "3" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/h3.jpg' %}"/>
+{% elif suit == "Hearts" and rank == "4" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/h4.jpg' %}"/>
+{% elif suit == "Hearts" and rank == "5" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/h5.jpg' %}"/>
+{% elif suit == "Hearts" and rank == "6" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/h6.jpg' %}"/>
+{% elif suit == "Hearts" and rank == "7" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/h7.jpg' %}"/>
+{% elif suit == "Hearts" and rank == "8" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/h8.jpg' %}"/>
+{% elif suit == "Hearts" and rank == "9" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/h9.jpg' %}"/>
+{% elif suit == "Hearts" and rank == "10" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/h10.jpg' %}"/>
+{% elif suit == "Hearts" and rank == "J" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/h11.jpg' %}"/>
+{% elif suit == "Hearts" and rank == "Q" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/h12.jpg' %}"/>
+{% elif suit == "Hearts" and rank == "K" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/h13.jpg' %}"/>
+{% elif suit == "Clubs" and rank == "A" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/c14.jpg' %}"/>
+{% elif suit == "Clubs" and rank == "2" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/c2.jpg' %}"/>
+{% elif suit == "Clubs" and rank == "3" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/c3.jpg' %}"/>
+{% elif suit == "Clubs" and rank == "4" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/c4.jpg' %}"/>
+{% elif suit == "Clubs" and rank == "5" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/c5.jpg' %}"/>
+{% elif suit == "Clubs" and rank == "6" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/c6.jpg' %}"/>
+{% elif suit == "Clubs" and rank == "7" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/c7.jpg' %}"/>
+{% elif suit == "Clubs" and rank == "8" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/c8.jpg' %}"/>
+{% elif suit == "Clubs" and rank == "9" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/c9.jpg' %}"/>
+{% elif suit == "Clubs" and rank == "10" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/c10.jpg' %}"/>
+{% elif suit == "Clubs" and rank == "J" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/c11.jpg' %}"/>
+{% elif suit == "Clubs" and rank == "Q" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/c12.jpg' %}"/>
+{% elif suit == "Clubs" and rank == "K" %}
+    <img class="card-img" src="{% static 'bussen/img/cards/c13.jpg' %}"/>
+{% else %}
+    <img class="card-img" src="{% static 'bussen/img/cards/back.jpg' %}"/>
+{% endif %}

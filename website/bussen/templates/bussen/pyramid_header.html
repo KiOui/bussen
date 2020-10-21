@@ -1,0 +1,29 @@
+{% load static game %}
+
+{% if not refresh %}
+    <link rel="stylesheet" href="{% static 'bussen/css/pyramid-header.css' %}"/>
+    <nav class="navbar sticky-top pyramid-header">
+        <div class="container d-flex flex-column justify-content-start align-items-start" id="pyramid-header-container">
+{% endif %}
+
+<div class="btn {% if player.current_game.game.pyramid.current_card_index == 0 %}
+                 btn-danger
+             {% else %}
+                 btn-primary
+             {% endif %})"
+     onclick="next_card({{ player.current_game.game.pyramid.current_card_index }});">
+    {% if player.current_game.game.pyramid.current_card_index == 0 %}
+        To the bus
+    {% else %}
+        Next card
+    {% endif %}
+</div>
+
+{% if not refresh %}
+        </div>
+    </nav>
+    <script>
+        REFRESH_GAME_PYRAMID_HEADER = "{% url 'bussen:game_pyramid_header' game=player.current_game %}"
+    </script>
+    <script src="{% static 'bussen/js/pyramid-header.js' %}"></script>
+{% endif %}

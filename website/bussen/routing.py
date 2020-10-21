@@ -1,11 +1,10 @@
-from channels.auth import AuthMiddlewareStack
-from channels.routing import ProtocolTypeRouter, URLRouter
-from channels.security.websocket import AllowedHostsOriginValidator
-import rooms.routing as rooms
+from django.urls import re_path
 
-application = ProtocolTypeRouter(
-    {
-        # (http->django views is added by default)
-        "websocket": AllowedHostsOriginValidator(AuthMiddlewareStack(URLRouter(rooms.websocket_urlpatterns)),),
-    }
-)
+from . import consumers
+
+websocket_urlpatterns = [
+    re_path(r"hubs/(?P<game_name>\w+)/$", consumers.HubConsumer),
+    re_path(r"games/phase1/(?P<game_name>\w+)/$", consumers.GamePhase1Consumer),
+    re_path(r"games/phase2/(?P<game_name>\w+)/$", consumers.GamePhase2Consumer),
+    re_path(r"games/phase3/(?P<game_name>\w+)/$", consumers.GamePhase3Consumer),
+]

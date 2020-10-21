@@ -1,0 +1,39 @@
+{% load static game %}
+
+{% if not refresh %}
+    <link rel="stylesheet" href="{% static 'bussen/css/bus.css' %}"/>
+    <div class="container d-flex flex-column" id="bus-container">
+{% endif %}
+    <div class="d-flex flex-row justify-content-center align-items-center my-2">
+        {% for card in bus %}
+            <div class="single-card-container mx-2 {% if card == current_card %} active-card{% endif %}">
+                {% if card.closed %}
+                    {% render_card None None %}
+                {% else %}
+                    {% render_card card.suit card.rank %}
+                {% endif %}
+
+                {% if player.current_game.current_player == player and card == current_card and player.current_game.game.cards_left > 0 %}
+                    <div class="options">
+                        <div class="btn btn-primary mb-1" onclick="guess('higher', {{ player.current_game.game.bus.current_card_index }});">
+                            Higher
+                        </div>
+                        <div class="btn btn-primary mb-1" onclick="guess('lower', {{ player.current_game.game.bus.current_card_index }});">
+                            Lower
+                        </div>
+                        <div class="btn btn-primary mb-1" onclick="guess('same', {{ player.current_game.game.bus.current_card_index }});">
+                            The same
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+
+{% if not refresh %}
+    </div>
+    <script>
+        REFRESH_GAME_BUS = "{% url 'bussen:game_bus' game=player.current_game %}"
+    </script>
+    <script src="{% static 'bussen/js/bus.js' %}"></script>
+{% endif %}

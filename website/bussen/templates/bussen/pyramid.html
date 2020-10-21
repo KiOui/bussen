@@ -1,0 +1,40 @@
+{% load static game %}
+
+{% if not refresh %}
+    <link rel="stylesheet" href="{% static 'bussen/css/pyramid.css' %}"/>
+    <div class="container d-flex flex-column" id="pyramid-container">
+{% endif %}
+
+{% for pyramid_row in pyramid %}
+    <div class="d-flex flex-row justify-content-center align-items-center my-2">
+        {% for card in pyramid_row %}
+            <div class="single-card-container mx-2 {% if card == current_card %}active-card{% endif %}">
+                {% if card.closed %}
+                    {% render_card None None %}
+                {% else %}
+                    {% render_card card.suit card.rank %}
+                    {% if card == current_card %}
+                        <div class="player-names">
+                            {% if cards_on_pyramid|length > 0 %}
+                                <p>Cards on this card:</p>
+                            {% endif %}
+                            {% for player_card in cards_on_pyramid %}
+                                <div class="btn btn-primary player-name mb-1" onclick="call_card('{{ player_card.random_id }}');">
+                                    {{ player_card.owner }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+{% endfor %}
+
+{% if not refresh %}
+    </div>
+    <script>
+        REFRESH_GAME_PYRAMID = "{% url 'bussen:game_pyramid' game=player.current_game %}"
+    </script>
+    <script src="{% static 'bussen/js/pyramid.js' %}"></script>
+{% endif %}

@@ -1,0 +1,33 @@
+{% extends 'games/base.html' %}
+{% load static game %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{% static 'bussen/css/enter.css' %}"/>
+    <link rel="stylesheet" href="{% static 'games/css/forms.css' %}"/>
+    <link rel="stylesheet" href="{% static 'bussen/css/toastr.css' %}"/>
+{% endblock %}
+
+{% block page %}
+<div class="container-lg min-vh-100 my-5">
+    <div class="container text-center text-white" id="game-container">
+        <h1 class="mb-5">Phase 3: Bus</h1>
+        {% if player == player.current_game.current_player %}
+            <p class="text-white">You are in the bus!</p>
+        {% else %}
+            <p class="text-white">{{ player.current_game.current_player }} is in the bus!</p>
+        {% endif %}
+        <div class="container">
+            {% render_bus player %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+    <script>
+        GAME_NAME = "{{ game }}";
+    </script>
+    <script src="{% static 'bussen/js/game_phase_3.js' %}"></script>
+    <script src="{% static 'bussen/js/toastr.js' %}"></script>
+    <script src="{% static 'bussen/js/confetti.min.js' %}"></script>
+{% endblock %}

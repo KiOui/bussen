@@ -1,24 +1,37 @@
-"""bussen URL Configuration.
+from django.urls import path, register_converter
+from bussen.views import (
+    EnterRoomView,
+    GameHubView,
+    CreatePlayerView,
+    GameView,
+    RedirectView,
+    CardRefreshView,
+    QuestionRefreshView,
+    PlayerHandRefreshView,
+    PyramidRefreshView,
+    PyramidHeaderRefreshView,
+    BusRefreshView,
+    GamePhase1View,
+    GamePhase2View,
+    GamePhase3View,
+)
+from .converters import GameConverter
 
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/3.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
-from django.contrib import admin
-from django.urls import path, include
-from .views import IndexView
+register_converter(GameConverter, "game")
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
-    path("", IndexView.as_view(), name="index"),
-    path("rooms/", include(("rooms.urls", "rooms"), namespace="rooms"),),
+    path("", EnterRoomView.as_view(), name="enter"),
+    path("redirect", RedirectView.as_view(), name="redirect"),
+    path("<game:game>/", GameHubView.as_view(), name="game_hub"),
+    path("<game:game>/create_player/", CreatePlayerView.as_view(), name="create_player"),
+    path("<game:game>/game-room", GameView.as_view(), name="game_room"),
+    path("<game:game>/game-room/phase1", GamePhase1View.as_view(), name="game_room_phase_1"),
+    path("<game:game>/game-room/phase2", GamePhase2View.as_view(), name="game_room_phase_2"),
+    path("<game:game>/game-room/phase3", GamePhase3View.as_view(), name="game_room_phase_3"),
+    path("<game:game>/cards", CardRefreshView.as_view(), name="game_player_cards"),
+    path("<game:game>/question", QuestionRefreshView.as_view(), name="game_player_question"),
+    path("<game:game>/pyramid", PyramidRefreshView.as_view(), name="game_pyramid"),
+    path("<game:game>/hand", PlayerHandRefreshView.as_view(), name="game_player_hand"),
+    path("<game:game>/pyramid-header", PyramidHeaderRefreshView.as_view(), name="game_pyramid_header"),
+    path("<game:game>/bus", BusRefreshView.as_view(), name="game_bus"),
 ]
