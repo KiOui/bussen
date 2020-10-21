@@ -42,7 +42,7 @@ jobs:
         run: >-
           poetry run
           flake8
-          --exclude="migrations,website/bussen/settings/*.py"
+          --exclude="migrations,website/games/settings/*.py"
           --max-line-length=119
           website
 
