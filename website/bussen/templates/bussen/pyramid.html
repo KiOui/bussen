@@ -34,7 +34,6 @@
 {% if not refresh %}
     </div>
     <script>
-        REFRESH_GAME_PYRAMID = "{% url 'bussen:game_pyramid' game=player.current_game %}"
+        add_update_list(update_and_replace, ["{% url 'bussen:game_pyramid' room=room %}", document.getElementById("pyramid-container"), {}]);
     </script>
-    <script src="{% static 'bussen/js/pyramid.js' %}"></script>
 {% endif %}

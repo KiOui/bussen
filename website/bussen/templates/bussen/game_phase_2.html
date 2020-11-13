@@ -1,4 +1,4 @@
-{% extends 'games/base.html' %}
+{% extends 'bussen/bussen_base.html' %}
 {% load static game %}
 
 {% block styles %}
@@ -11,7 +11,7 @@
     {% render_pyramid_header player %}
 {% endblock %}
 
-{% block page %}
+{% block game %}
 <div class="container-lg min-vh-100 my-5">
     <div class="container text-center text-white" id="game-container">
         <h1 class="mb-5">Phase 2: Pyramid</h1>

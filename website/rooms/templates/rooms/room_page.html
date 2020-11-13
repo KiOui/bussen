@@ -1,0 +1,14 @@
+{% extends 'games/base.html' %}
+{% load static room %}
+
+{% block page %}
+<div class="container-lg min-vh-100 d-flex align-items-center justify-content-center">
+    <div class="w-100 flex-row d-flex flex-nowrap justify-content-between">
+
+        <div class="m-auto title-block">
+            {% render_room room %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}

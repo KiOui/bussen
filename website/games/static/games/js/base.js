@@ -1,5 +1,4 @@
 
-let update_timer = null;
 let update_list = [];
 
 function get_cookie(name) {
@@ -52,11 +51,13 @@ function add_update_list(func, args) {
 }
 
 function update_update_list() {
-    clearTimeout(update_timer);
     for (let i = 0; i < update_list.length; i++) {
-        update_list[i].func.apply(this, update_list[i].args);
+        try {
+            update_list[i].func.apply(this, update_list[i].args);
+        } catch (e) {
+            console.error("Failed to update " + update_list[i].func + " with arguments " + update_list[i].args)
+        }
     }
-    update_timer = setTimeout(update_update_list, 2000);
 }
 
 function get_csrf_token() {

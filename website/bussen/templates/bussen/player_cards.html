@@ -4,7 +4,7 @@
     <link rel="stylesheet" href="{% static 'bussen/css/game.css' %}"/>
     <div class="container d-flex align-content-between justify-content-between" id="card-container">
 {% endif %}
-    {% for card in player.current_hand.card_list %}
+    {% for card in hand.card_list %}
         <div class="single-card-container">
             {% render_card card.suit card.rank %}
         </div>
@@ -12,7 +12,6 @@
 {% if not refresh %}
     </div>
     <script>
-        REFRESH_CARDS_DATA_URL = "{% url 'bussen:game_player_cards' game=player.current_game %}"
+        add_update_list(update_and_replace, ["{% url 'bussen:game_player_cards' room=player.room %}", document.getElementById("card-container"), {}]);
     </script>
-    <script src="{% static 'bussen/js/player-cards.js' %}"></script>
 {% endif %}

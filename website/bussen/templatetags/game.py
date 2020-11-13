@@ -1,6 +1,6 @@
 from django import template
 
-from bussen.models import BusGameModel, Player
+from bussen.models import BusGameModel, Player, Hand
 
 register = template.Library()
 
@@ -8,13 +8,13 @@ register = template.Library()
 @register.inclusion_tag("bussen/player_cards.html", takes_context=True)
 def render_game_cards(context, player, refresh=False):
     """Render order footer."""
-    return {"player": player, "request": context.get("request"), "refresh": refresh}
+    return {"player": player, "request": context.get("request"), "refresh": refresh, "hand": Hand.get_hand(player, player.room.game)}
 
 
 @register.inclusion_tag("bussen/pyramid_header.html", takes_context=True)
 def render_pyramid_header(context, player, refresh=False):
     """Render pyramid header."""
-    return {"player": player, "request": context.get("request"), "refresh": refresh}
+    return {"player": player, "request": context.get("request"), "refresh": refresh, "room": player.room}
 
 
 @register.inclusion_tag("bussen/card.html", takes_context=False)
@@ -33,9 +33,10 @@ def render_pyramid(context, player: Player, refresh=False):
         "player": player,
         "request": context.get("request"),
         "refresh": refresh,
-        "pyramid": player.current_game.game.pyramid.pyramid,
-        "current_card": player.current_game.game.pyramid.current_card(),
-        "cards_on_pyramid": [x for x in player.current_game.game.pyramid.cards_on_pyramid if x.owner != player],
+        "pyramid": player.room.game.game.pyramid.pyramid,
+        "current_card": player.room.game.game.pyramid.current_card(),
+        "cards_on_pyramid": [x for x in player.room.game.game.pyramid.cards_on_pyramid if x.owner != player],
+        "room": player.room
     }
 
 
@@ -46,8 +47,9 @@ def render_bus(context, player, refresh=False):
         "player": player,
         "request": context.get("request"),
         "refresh": refresh,
-        "bus": player.current_game.game.bus.bus,
-        "current_card": player.current_game.game.bus.current_card(),
+        "bus": player.room.game.game.bus.bus,
+        "current_card": player.room.game.game.bus.current_card(),
+        "room": player.room,
     }
 
 
@@ -58,27 +60,27 @@ def render_player_hand(context, player, refresh=False):
         "player": player,
         "request": context.get("request"),
         "refresh": refresh,
-        "hand": player.current_hand.hand.hand,
+        "hand": Hand.get_hand(player, player.room.game).hand.hand,
     }
 
 
 @register.inclusion_tag("bussen/player_question.html", takes_context=True)
 def render_player_question(context, player, refresh=False):
     """Render order footer."""
-    if player.current_game.phase != BusGameModel.PHASE_1:
+    if player.room.game.phase != BusGameModel.PHASE_1:
         return {
             "player": player,
             "request": context.get("request"),
             "refresh": refresh,
             "display": False,
         }
-    elif player == player.current_game.current_player:
+    elif player == player.room.game.current_player:
         return {
             "player": player,
             "request": context.get("request"),
             "refresh": refresh,
-            "question": player.get_card_question()["question"],
-            "answers": player.get_card_question()["answers"],
+            "question": player.room.game.get_card_question(player)["question"],
+            "answers": player.room.game.get_card_question(player)["answers"],
             "display": True,
         }
     else:

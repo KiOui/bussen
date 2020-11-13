@@ -13,15 +13,15 @@
                     {% render_card card.suit card.rank %}
                 {% endif %}
 
-                {% if player.current_game.current_player == player and card == current_card and player.current_game.game.cards_left > 0 %}
+                {% if player.room.game.current_player == player and card == current_card and player.room.game.game.cards_left > 0 %}
                     <div class="options">
-                        <div class="btn btn-primary mb-1" onclick="guess('higher', {{ player.current_game.game.bus.current_card_index }});">
+                        <div class="btn btn-primary mb-1" onclick="guess('higher', {{ player.room.game.game.bus.current_card_index }});">
                             Higher
                         </div>
-                        <div class="btn btn-primary mb-1" onclick="guess('lower', {{ player.current_game.game.bus.current_card_index }});">
+                        <div class="btn btn-primary mb-1" onclick="guess('lower', {{ player.room.game.game.bus.current_card_index }});">
                             Lower
                         </div>
-                        <div class="btn btn-primary mb-1" onclick="guess('same', {{ player.current_game.game.bus.current_card_index }});">
+                        <div class="btn btn-primary mb-1" onclick="guess('same', {{ player.room.game.game.bus.current_card_index }});">
                             The same
                         </div>
                     </div>
@@ -33,7 +33,6 @@
 {% if not refresh %}
     </div>
     <script>
-        REFRESH_GAME_BUS = "{% url 'bussen:game_bus' game=player.current_game %}"
+        add_update_list(update_and_replace, ["{% url 'bussen:game_bus' room=room %}", document.getElementById("bus-container"), {}]);
     </script>
-    <script src="{% static 'bussen/js/bus.js' %}"></script>
 {% endif %}

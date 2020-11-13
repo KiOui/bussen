@@ -1,0 +1,28 @@
+{% extends 'games/base.html' %}
+{% load static %}
+
+{% block styles %}
+{% endblock %}
+
+{% block page %}
+<div class="container-lg min-vh-100 d-flex align-items-center justify-content-center">
+    <div class="w-100 flex-row d-flex flex-nowrap justify-content-between">
+
+        <div class="m-auto title-block">
+
+            <div class="container">
+                <h1 class="text-white">Set username</h1>
+                <p class="text-white">You have not set a username yet, please do so now so other people can recognize
+                who you are</p>
+
+                <form method="POST" class="text-white">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <input type="submit" class="btn btn-primary" value="Set username"/>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
