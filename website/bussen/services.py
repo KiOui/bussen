@@ -26,7 +26,7 @@ class BusGameConsumer:
                         {
                             "type": "send_group_message",
                             "text": json.dumps(
-                                {"type": "redirect", "delay": 3000, "url": reverse("bussen:redirect"),}
+                                {"type": "redirect", "delay": 3000, "url": reverse("bussen:redirect"),}  # noqa
                             ),
                         },
                     )
@@ -160,7 +160,9 @@ class BusGameConsumer:
                 player.room.slug,
                 {
                     "type": "send_group_message",
-                    "text": json.dumps({"type": "redirect", "delay": 3000, "url": reverse("bussen:redirect"),}),
+                    "text": json.dumps(
+                        {"type": "redirect", "delay": 3000, "url": reverse("bussen:redirect"),}  # noqa
+                    ),
                 },
             )
 
@@ -202,7 +204,7 @@ class BusGameConsumer:
                     player.room.slug,
                     {
                         "type": "send_group_message",
-                        "text": json.dumps({"type": "celebrate", "url": reverse("bussen:redirect"),}),
+                        "text": json.dumps({"type": "celebrate", "url": reverse("bussen:redirect"),}),  # noqa
                     },
                 )
                 player.room.game.delete()

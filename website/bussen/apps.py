@@ -8,4 +8,4 @@ class BussenConfig(AppConfig):
 
     def ready(self):
         """Ready method."""
-        from .games import games
+        from .games import games  # noqa

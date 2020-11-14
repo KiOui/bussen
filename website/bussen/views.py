@@ -25,7 +25,6 @@ class RedirectView(TemplateView):
         :param kwargs: keyword arguments
         :return: a redirect to a game view the player is supposed to be at
         """
-        game = kwargs.get("game")
         player = get_player_from_request(request)
 
         if player is None or player.room is None or player.room.game is None:

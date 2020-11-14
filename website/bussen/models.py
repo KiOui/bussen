@@ -54,7 +54,7 @@ class BusGameModel(models.Model):
         except Hand.DoesNotExist:
             pass
 
-        if player not in list(self.room.players)[self.current_player_index :]:
+        if player not in list(self.room.players)[self.current_player_index :]:  # noqa
             self.current_player_index -= 1
             self.save()
 

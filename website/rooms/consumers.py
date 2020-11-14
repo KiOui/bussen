@@ -1,6 +1,5 @@
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import SyncConsumer
-from channels.layers import get_channel_layer
 import json
 from rooms.services import get_player_from_cookie
 from .models import Player
