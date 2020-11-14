@@ -8,8 +8,11 @@ https://docs.djangoproject.com/en/3.0/howto/deployment/asgi/
 """
 
 import os
-from django.core.asgi import get_asgi_application
+import django
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "games.settings")
+django.setup()
 
-application = get_asgi_application()
+from games.routing import application as application_websocket
+
+application = application_websocket

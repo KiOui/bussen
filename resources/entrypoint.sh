@@ -15,8 +15,7 @@ cd /games/src/website
 
 chown --recursive www-data:www-data /games/
 
-echo "Starting uvicorn server."
-gunicorn --bind :8000 \
-    --workers 5 \
-    -k uvicorn.workers.UvicornWorker \
+echo "Starting daphne server."
+daphne -b 0.0.0.0 \
+    -p 8000 \
     games.asgi:application
