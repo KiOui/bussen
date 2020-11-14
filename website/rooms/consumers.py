@@ -12,7 +12,7 @@ class RoomConsumer(SyncConsumer):
 
     def websocket_connect(self, event):
         """Connect websocket."""
-        room_name = self.scope["url_route"]['kwargs'].get('room_name')
+        room_name = self.scope["url_route"]["kwargs"].get("room_name")
         player_id_cookie = self.scope["cookies"].get(Player.PLAYER_COOKIE_NAME, None)
         player = get_player_from_cookie(player_id_cookie)
         if player is None or player.room is None or player.room.slug != room_name:
@@ -21,8 +21,7 @@ class RoomConsumer(SyncConsumer):
             player.interaction()
             self.add_to_group(player)
             async_to_sync(self.channel_layer.group_send)(
-                player.room.slug,
-                {"type": "send_group_message", "text": json.dumps({"type": "refresh"})},
+                player.room.slug, {"type": "send_group_message", "text": json.dumps({"type": "refresh"})},
             )
             self.accept_connection()
 
@@ -49,12 +48,12 @@ class RoomConsumer(SyncConsumer):
 
     def execute_message(self, message, player):
         """Execute a message send by a player."""
-        if 'game' in message.keys() and message['game'] and player.room.game is not None:
+        if "game" in message.keys() and message["game"] and player.room.game is not None:
             send_back = player.room.game.execute_message(message, player)
             if send_back:
                 self.send({"type": "websocket.send", "text": send_back})
-        elif 'type' in message.keys():
-            if message['type'] == 'ping':
+        elif "type" in message.keys():
+            if message["type"] == "ping":
                 player.interaction()
                 self.send({"type": "websocket.send", "text": json.dumps({"type": "refresh"})})
 

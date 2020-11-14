@@ -11,12 +11,14 @@ import math
 
 
 class BusGameConsumer:
+    """BusGameConsumer, handle all websocket game input for bussen game."""
 
     @staticmethod
     def handle_phase1_message(message, player):
-        if 'type' in message.keys():
-            if message['type'] == "answer":
-                BusGameConsumer.handle_phase1_message_answer(player, message['value'])
+        """Handle phase1 message."""
+        if "type" in message.keys():
+            if message["type"] == "answer":
+                BusGameConsumer.handle_phase1_message_answer(player, message["value"])
                 if player.room.game.phase != bussen.models.BusGameModel.PHASE_1:
                     channel_layer = get_channel_layer()
                     async_to_sync(channel_layer.group_send)(
@@ -24,17 +26,14 @@ class BusGameConsumer:
                         {
                             "type": "send_group_message",
                             "text": json.dumps(
-                                {
-                                    "type": "redirect",
-                                    "delay": 3000,
-                                    "url": reverse("bussen:redirect"),
-                                }
+                                {"type": "redirect", "delay": 3000, "url": reverse("bussen:redirect"),}
                             ),
                         },
                     )
 
     @staticmethod
     def handle_phase1_message_answer(player, value):
+        """Handle phase1 message of type answer."""
         answer = player.room.game.handle_phase1_answer(player, value)
         channel_layer = get_channel_layer()
         if answer is not None:
@@ -82,16 +81,18 @@ class BusGameConsumer:
 
     @staticmethod
     def handle_phase2_message(message, player):
-        if 'type' in message.keys():
-            if message['type'] == "card":
+        """Handle phase2 message."""
+        if "type" in message.keys():
+            if message["type"] == "card":
                 BusGameConsumer.handle_phase2_message_card(message, player)
-            elif message['type'] == "call":
+            elif message["type"] == "call":
                 BusGameConsumer.handle_phase2_message_call(message, player)
-            elif message['type'] == "next_card":
+            elif message["type"] == "next_card":
                 BusGameConsumer.handle_phase2_message_next_card(message, player)
 
     @staticmethod
     def handle_phase2_message_card(message, player):
+        """Handle phase2 message of type card."""
         channel_layer = get_channel_layer()
         if message["suit"] is not None and message["rank"] is not None:
             if player.room.game.add_card_to_pile(player, message["suit"], message["rank"]):
@@ -110,12 +111,12 @@ class BusGameConsumer:
 
     @staticmethod
     def handle_phase2_message_call(message, player):
+        """Handle phase2 message of type call."""
         channel_layer = get_channel_layer()
         removed, card_of_player = player.room.game.call_card(message["id"])
         if removed:
             async_to_sync(channel_layer.group_send)(
-                player.room.slug,
-                {"type": "send_group_message", "text": json.dumps({"type": "refresh"})},
+                player.room.slug, {"type": "send_group_message", "text": json.dumps({"type": "refresh"})},
             )
             async_to_sync(channel_layer.group_send)(
                 player.room.slug,
@@ -147,36 +148,32 @@ class BusGameConsumer:
 
     @staticmethod
     def handle_phase2_message_next_card(message, player):
+        """Handle phase2 message of type next_card."""
         channel_layer = get_channel_layer()
         if player.room.game.phase2_next_turn(message["index"]):
             if player.room.game.phase == bussen.models.BusGameModel.PHASE_2:
                 async_to_sync(channel_layer.group_send)(
-                    player.room.slug,
-                    {"type": "send_group_message", "text": json.dumps({"type": "refresh"})},
+                    player.room.slug, {"type": "send_group_message", "text": json.dumps({"type": "refresh"})},
                 )
         if player.room.game.phase != bussen.models.BusGameModel.PHASE_2:
             async_to_sync(channel_layer.group_send)(
                 player.room.slug,
                 {
                     "type": "send_group_message",
-                    "text": json.dumps(
-                        {
-                            "type": "redirect",
-                            "delay": 3000,
-                            "url": reverse("bussen:redirect"),
-                        }
-                    ),
+                    "text": json.dumps({"type": "redirect", "delay": 3000, "url": reverse("bussen:redirect"),}),
                 },
             )
 
     @staticmethod
     def handle_phase3_message(message, player):
-        if 'type' in message.keys():
-            if message['type'] == "guess":
+        """Handle phase3 message."""
+        if "type" in message.keys():
+            if message["type"] == "guess":
                 BusGameConsumer.handle_phase3_message_guess(message, player)
 
     @staticmethod
     def handle_phase3_message_guess(message, player):
+        """Handle phase3 message of type guess."""
         channel_layer = get_channel_layer()
         if message["index"] == player.room.game.game.bus.current_card_index:
             correct = player.room.game.phase3_guess(message["guess"], player)
@@ -197,8 +194,7 @@ class BusGameConsumer:
                     )
 
             async_to_sync(channel_layer.group_send)(
-                player.room.slug,
-                {"type": "send_group_message", "text": json.dumps({"type": "refresh"})},
+                player.room.slug, {"type": "send_group_message", "text": json.dumps({"type": "refresh"})},
             )
 
             if player.room.game.phase == bussen.models.BusGameModel.PHASE_FINISHED:
@@ -206,12 +202,7 @@ class BusGameConsumer:
                     player.room.slug,
                     {
                         "type": "send_group_message",
-                        "text": json.dumps(
-                            {
-                                "type": "celebrate",
-                                "url": reverse("bussen:redirect"),
-                            }
-                        ),
+                        "text": json.dumps({"type": "celebrate", "url": reverse("bussen:redirect"),}),
                     },
                 )
                 player.room.game.delete()

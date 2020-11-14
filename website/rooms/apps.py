@@ -2,7 +2,9 @@ from django.apps import AppConfig
 
 
 class RoomsConfig(AppConfig):
-    name = 'rooms'
+    """Room config."""
+
+    name = "rooms"
 
     def ready(self):
         """Ready method."""

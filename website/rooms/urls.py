@@ -1,6 +1,17 @@
 from django.urls import path, register_converter
 from .converters import RoomConverter
-from .views import RoomView, CreateRoomView, CreateUserView, RoomRedirectView, RoomOverviewView, JoinRoomView, LeaveRoomView, StartGameView, RoomRefreshView, KickPlayerView
+from .views import (
+    RoomView,
+    CreateRoomView,
+    CreateUserView,
+    RoomRedirectView,
+    RoomOverviewView,
+    JoinRoomView,
+    LeaveRoomView,
+    StartGameView,
+    RoomRefreshView,
+    KickPlayerView,
+)
 
 register_converter(RoomConverter, "room")
 

@@ -60,7 +60,13 @@ class GamePhase1View(TemplateView):
         room = kwargs.get("room")
         player = get_player_from_request(request)
 
-        if player is None or player.room != room or room.game is None or type(room.game) != BusGameModel or room.game.phase != BusGameModel.PHASE_1:
+        if (
+            player is None
+            or player.room != room
+            or room.game is None
+            or type(room.game) != BusGameModel
+            or room.game.phase != BusGameModel.PHASE_1
+        ):
             return redirect("bussen:redirect")
         else:
             return render(request, self.template_name, {"game": room.game, "player": player})
@@ -82,7 +88,13 @@ class GamePhase2View(TemplateView):
         room = kwargs.get("room")
         player = get_player_from_request(request)
 
-        if player is None or player.room != room or room.game is None or type(room.game) != BusGameModel or room.game.phase != BusGameModel.PHASE_2:
+        if (
+            player is None
+            or player.room != room
+            or room.game is None
+            or type(room.game) != BusGameModel
+            or room.game.phase != BusGameModel.PHASE_2
+        ):
             return redirect("bussen:redirect")
         else:
             return render(request, self.template_name, {"game": room.game, "player": player})
@@ -104,7 +116,13 @@ class GamePhase3View(TemplateView):
         room = kwargs.get("room")
         player = get_player_from_request(request)
 
-        if player is None or player.room != room or room.game is None or type(room.game) != BusGameModel or room.game.phase != BusGameModel.PHASE_3:
+        if (
+            player is None
+            or player.room != room
+            or room.game is None
+            or type(room.game) != BusGameModel
+            or room.game.phase != BusGameModel.PHASE_3
+        ):
             return redirect("bussen:redirect")
         else:
             return render(request, self.template_name, {"game": room.game, "player": player})
@@ -174,7 +192,13 @@ class PyramidRefreshView(TemplateView):
         """
         room = kwargs.get("room")
         player = get_player_from_request(request)
-        if player is None or player.room != room or room.game is None or type(room.game) != BusGameModel or room.game.phase != BusGameModel.PHASE_2:
+        if (
+            player is None
+            or player.room != room
+            or room.game is None
+            or type(room.game) != BusGameModel
+            or room.game.phase != BusGameModel.PHASE_2
+        ):
             return Http404()
 
         pyramid = get_template(self.template_name).render(render_pyramid({"request": request}, player, refresh=True))
@@ -220,7 +244,13 @@ class PyramidHeaderRefreshView(TemplateView):
         """
         room = kwargs.get("room")
         player = get_player_from_request(request)
-        if player is None or player.room != room or room.game is None or type(room.game) != BusGameModel or room.game.phase != BusGameModel.PHASE_2:
+        if (
+            player is None
+            or player.room != room
+            or room.game is None
+            or type(room.game) != BusGameModel
+            or room.game.phase != BusGameModel.PHASE_2
+        ):
             return Http404()
 
         hand = get_template(self.template_name).render(
@@ -245,7 +275,13 @@ class BusRefreshView(TemplateView):
         """
         room = kwargs.get("room")
         player = get_player_from_request(request)
-        if player is None or player.room != room or room.game is None or type(room.game) != BusGameModel or room.game.phase != BusGameModel.PHASE_3:
+        if (
+            player is None
+            or player.room != room
+            or room.game is None
+            or type(room.game) != BusGameModel
+            or room.game.phase != BusGameModel.PHASE_3
+        ):
             return Http404()
 
         bus = get_template(self.template_name).render(render_bus({"request": request}, player, refresh=True))

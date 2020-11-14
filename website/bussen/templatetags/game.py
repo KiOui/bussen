@@ -8,7 +8,12 @@ register = template.Library()
 @register.inclusion_tag("bussen/player_cards.html", takes_context=True)
 def render_game_cards(context, player, refresh=False):
     """Render order footer."""
-    return {"player": player, "request": context.get("request"), "refresh": refresh, "hand": Hand.get_hand(player, player.room.game)}
+    return {
+        "player": player,
+        "request": context.get("request"),
+        "refresh": refresh,
+        "hand": Hand.get_hand(player, player.room.game),
+    }
 
 
 @register.inclusion_tag("bussen/pyramid_header.html", takes_context=True)
@@ -36,7 +41,7 @@ def render_pyramid(context, player: Player, refresh=False):
         "pyramid": player.room.game.game.pyramid.pyramid,
         "current_card": player.room.game.game.pyramid.current_card(),
         "cards_on_pyramid": [x for x in player.room.game.game.pyramid.cards_on_pyramid if x.owner != player],
-        "room": player.room
+        "room": player.room,
     }
 
 

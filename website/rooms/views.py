@@ -9,8 +9,10 @@ from .templatetags.room import render_room
 
 
 class RoomRedirectView(TemplateView):
+    """Room redirect view."""
 
     def get(self, request, **kwargs):
+        """GET request for redirect view, redirect users to correct view."""
         player = get_player_from_request(request)
         if player is None:
             return redirect("rooms:create_user")
@@ -23,10 +25,12 @@ class RoomRedirectView(TemplateView):
 
 
 class RoomOverviewView(TemplateView):
+    """Room Overview view."""
 
     template_name = "rooms/room_overview.html"
 
     def get(self, request, **kwargs):
+        """GET request for room overview view."""
         player = get_player_from_request(request)
         if player is None or player.room is not None:
             return redirect("rooms:redirect")
@@ -36,21 +40,27 @@ class RoomOverviewView(TemplateView):
 
 
 class JoinRoomView(TemplateView):
+    """Join room view."""
 
     def get(self, request, **kwargs):
+        """GET request for join room view."""
         player = get_player_from_request(request)
         if player is None or player.room is not None:
             return redirect("rooms:redirect")
 
         room = kwargs.get("room")
+        if room.game is not None:
+            return redirect("rooms:redirect")
         player.room = room
         player.save()
         return redirect("rooms:room", room=room)
 
 
 class LeaveRoomView(TemplateView):
+    """Leave room view."""
 
     def get(self, request, **kwargs):
+        """GET request for leave room view."""
         room = kwargs.get("room")
         player = get_player_from_request(request)
         if player is None or player.room != room:
@@ -62,10 +72,12 @@ class LeaveRoomView(TemplateView):
 
 
 class RoomView(TemplateView):
+    """Room view."""
 
     template_name = "rooms/room_page.html"
 
     def get(self, request, **kwargs):
+        """GET request for room page."""
         room = kwargs.get("room")
         player = get_player_from_request(request)
         if player is None or player.room != room:
@@ -92,23 +104,24 @@ class RoomRefreshView(TemplateView):
         if player is None or player.room != room:
             return Http404()
 
-        room = get_template(self.template_name).render(
-            render_room({"request": request}, room, refresh=True), request
-        )
+        room = get_template(self.template_name).render(render_room({"request": request}, room, refresh=True), request)
         return JsonResponse({"data": room})
 
 
 class CreateRoomView(TemplateView):
+    """Create room view."""
 
     template_name = "rooms/create_room.html"
 
     def get(self, request, **kwargs):
+        """GET request for create room view."""
         player = get_player_from_request(request)
         if player is None or player.room is not None:
             return redirect("rooms:redirect")
         return render(request, self.template_name, {"form": RoomCreationForm()})
 
     def post(self, request, **kwargs):
+        """POST request for create room view."""
         player = get_player_from_request(request)
         if player is None or player.room is not None:
             return redirect("rooms:redirect")
@@ -128,10 +141,12 @@ class CreateRoomView(TemplateView):
 
 
 class CreateUserView(TemplateView):
+    """Create user view."""
 
     template_name = "rooms/create_user.html"
 
     def get(self, request, **kwargs):
+        """GET request for create user view."""
         player = get_player_from_request(request)
         if player is not None:
             form = PlayerCreationForm(initial={"player_name": player.name})
@@ -140,6 +155,7 @@ class CreateUserView(TemplateView):
         return render(request, self.template_name, {"form": form})
 
     def post(self, request, **kwargs):
+        """POST request for create user view."""
         player = get_player_from_request(request)
         form = PlayerCreationForm(request.POST)
         if form.is_valid():
@@ -156,8 +172,10 @@ class CreateUserView(TemplateView):
 
 
 class StartGameView(TemplateView):
+    """Start a game."""
 
     def post(self, request, **kwargs):
+        """Start a game, checks if there are enough players and if no game has already been started."""
         room = kwargs.get("room")
         player = get_player_from_request(request)
         if player is None or player.room != room:
@@ -176,8 +194,10 @@ class StartGameView(TemplateView):
 
 
 class KickPlayerView(TemplateView):
+    """Kick a player."""
 
     def post(self, request, **kwargs):
+        """Kick a player."""
         room = kwargs.get("room")
         player = get_player_from_request(request)
         if player is None or player.room is None or player.room != room:

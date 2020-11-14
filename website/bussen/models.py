@@ -34,6 +34,7 @@ class BusGameModel(models.Model):
 
     @property
     def room(self) -> Room:
+        """Get the corresponding room for this game."""
         ct = ContentType.objects.get_for_model(self)
         room = Room.objects.get(content_type=ct, object_id=self.id)
         if room is None:
@@ -42,16 +43,22 @@ class BusGameModel(models.Model):
             return room
 
     def remove_player(self, player):
+        """
+        Remove a player from this game.
+
+        :param player: the player to remove
+        :return: this object or None if the object has been removed due to it being out of player bounds
+        """
         try:
             Hand.objects.get(player=player, game=self).delete()
         except Hand.DoesNotExist:
             pass
 
-        if player not in list(self.room.players)[self.current_player_index:]:
+        if player not in list(self.room.players)[self.current_player_index :]:
             self.current_player_index -= 1
             self.save()
 
-        if len(list(self.room.players)) < self.minimum_amount_of_players():
+        if len(list(self.room.players)) - 1 < self.minimum_amount_of_players():
             self.delete()
             return None
         return self
@@ -158,9 +165,7 @@ class BusGameModel(models.Model):
         for i in range(0, len(self.room.players)):
             hand_player_lost = Hand.get_hand(self.room.players[player_lost], self)
             hand_player = Hand.get_hand(self.room.players[i], self)
-            if len(hand_player_lost.hand.hand) < len(
-                hand_player.hand.hand
-            ):
+            if len(hand_player_lost.hand.hand) < len(hand_player.hand.hand):
                 player_lost = i
 
         [Hand.get_hand(player, self).delete() for player in self.room.players]
@@ -406,32 +411,38 @@ class BusGameModel(models.Model):
             return False, self.game.pyramid.owner_of_id(random_id)
 
     def execute_message(self, message, player):
-        if 'phase' in message.keys():
-            if message['phase'] == 'phase1':
+        """Execute a websocket message."""
+        if "phase" in message.keys():
+            if message["phase"] == "phase1":
                 BusGameConsumer.handle_phase1_message(message, player)
-            elif message['phase'] == 'phase2':
+            elif message["phase"] == "phase2":
                 BusGameConsumer.handle_phase2_message(message, player)
-            elif message['phase'] == 'phase3':
+            elif message["phase"] == "phase3":
                 BusGameConsumer.handle_phase3_message(message, player)
 
     @staticmethod
     def game_name():
+        """Get the name of this game."""
         return "Bussen"
 
     @staticmethod
     def get_route():
+        """Get the route of this game."""
         return "bussen:redirect"
 
     @staticmethod
     def get_redirect_route():
+        """Get the redirect object for this game."""
         return redirect(BusGameModel.get_route())
 
     @staticmethod
     def minimum_amount_of_players():
+        """Get the minimum amount of required players for this game."""
         return 2
 
     @staticmethod
     def maximum_amount_of_players():
+        """Get the maximum amount of players for this game."""
         return 8
 
 

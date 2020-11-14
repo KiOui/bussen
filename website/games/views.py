@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views.generic import TemplateView
 
 
@@ -15,4 +15,5 @@ class IndexView(TemplateView):
         :param kwargs: keyword arguments
         :return: a render of the index page
         """
-        return render(request, self.template_name)
+        return redirect("rooms:redirect")
+        # return render(request, self.template_name)

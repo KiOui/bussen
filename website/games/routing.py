@@ -9,7 +9,6 @@ urlpatterns += rooms.websocket_urlpatterns
 application = ProtocolTypeRouter(
     {
         # (http->django views is added by default)
-        "websocket": AllowedHostsOriginValidator(AuthMiddlewareStack(URLRouter(
-            urlpatterns)),),
+        "websocket": AllowedHostsOriginValidator(AuthMiddlewareStack(URLRouter(urlpatterns)),),
     }
 )

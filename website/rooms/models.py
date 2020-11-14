@@ -40,19 +40,23 @@ class Room(models.Model):
     slug = models.SlugField(null=False, blank=False, unique=True, max_length=256)
     content_type = models.ForeignKey(ContentType, on_delete=models.SET_NULL, null=True, blank=True)
     object_id = models.PositiveIntegerField(blank=True, null=True)
-    game = GenericForeignKey('content_type', 'object_id')
+    game = GenericForeignKey("content_type", "object_id")
 
     def __str__(self) -> str:
+        """Cast this object to a string."""
         return self.name
 
     def remove_player(self, player):
+        """Remove a player from this room, executes before removal of player."""
         if self.game is not None:
             if self.game.remove_player(player) is None:
+                print("Redirecting group")
                 self.redirect_group(reverse("rooms:redirect"))
 
     @property
     def players(self):
-        return Player.objects.filter(room=self).order_by('cookie')
+        """Get all players in this room."""
+        return Player.objects.filter(room=self).order_by("cookie")
 
     def save(self, *args, **kwargs):
         """
@@ -71,17 +75,13 @@ class Room(models.Model):
         super(Room, self).save(*args, **kwargs)
 
     def redirect_group(self, route):
+        """Redirect this room to a new page."""
         self.send_group_message(json.dumps({"type": "redirect", "url": route}))
 
     def send_group_message(self, message):
+        """Send a group message to this room."""
         channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)(
-            self.slug,
-            {
-                'type': 'send_group_message',
-                'text': message
-            }
-        )
+        async_to_sync(channel_layer.group_send)(self.slug, {"type": "send_group_message", "text": message})
 
     def start_game(self, game):
         """
@@ -92,8 +92,11 @@ class Room(models.Model):
         """
         if self.game is None:
             if game in games.get_games().keys():
-                if games.get_games()[game].minimum_amount_of_players() <= self.players.count() <= \
-                        games.get_games()[game].maximum_amount_of_players():
+                if (
+                    games.get_games()[game].minimum_amount_of_players()
+                    <= self.players.count()
+                    <= games.get_games()[game].maximum_amount_of_players()
+                ):
                     new_game = games.get_games()[game].objects.create()
                     self.game = new_game
                     self.save()
@@ -119,18 +122,18 @@ class Player(models.Model):
 
     @property
     def online(self):
-        # TODO: Check if this works
-        return self.last_interaction >= timezone.now() - timezone.timedelta(minutes=1)
+        """Check if a player is online."""
+        return self.last_interaction >= timezone.now() - timezone.timedelta(seconds=5)  # timezone.timedelta(minutes=1)
 
     def __init__(self, *args, **kwargs):
+        """Initialise class."""
         super().__init__(*args, **kwargs)
         self._room = self.room
 
     def notify_room(self):
+        """Notify this room."""
         if self._room is not None:
             self._room.remove_player(self)
-        if self.room is not None:
-            self.room.remove_player(self)
 
     def save(self, *args, **kwargs):
         """

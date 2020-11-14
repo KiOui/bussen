@@ -7,4 +7,5 @@ class BussenConfig(AppConfig):
     name = "bussen"
 
     def ready(self):
+        """Ready method."""
         from .games import games
