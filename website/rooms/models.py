@@ -123,7 +123,7 @@ class Player(models.Model):
     @property
     def online(self):
         """Check if a player is online."""
-        return self.last_interaction >= timezone.now() - timezone.timedelta(seconds=5)  # timezone.timedelta(minutes=1)
+        return self.last_interaction >= timezone.now() - timezone.timedelta(minutes=1)
 
     def __init__(self, *args, **kwargs):
         """Initialise class."""

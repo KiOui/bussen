@@ -1,0 +1,12 @@
+.room-slide-container {
+    position: fixed;
+    top: 40px;
+    left: -300px;
+    max-width: 500px;
+    z-index: 100;
+    padding-left: 40px;
+}
+
+.room-slide-container:hover {
+    left: 0;
+}
