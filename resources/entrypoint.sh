@@ -6,7 +6,7 @@ until pg_isready --host="${POSTGRES_HOST}" --username="${POSTGRES_USER}" --quiet
     sleep 1;
 done
 
-touch -a /games/log/uwsgi.log
+touch -a /games/log/awsgi.log
 touch -a /games/log/django.log
 
 cd /games/src/website
@@ -15,9 +15,9 @@ cd /games/src/website
 
 chown --recursive www-data:www-data /games/
 
-echo "Starting uwsgi server."
-uwsgi --chdir=/games/src/website \
-    --module=games.wsgi:application \
+echo "Starting asgi server."
+asgi --chdir=/games/src/website \
+    --module=games.asgi:application \
     --master --pidfile=/tmp/project-master.pid \
     --socket=:8000 \
     --processes=5 \
@@ -28,7 +28,7 @@ uwsgi --chdir=/games/src/website \
     --thunder-lock \
     --vacuum \
     --logfile-chown \
-    --logto2=/games/log/uwsgi.log \
+    --logto2=/games/log/asgi.log \
     --ignore-sigpipe \
     --ignore-write-errors \
     --disable-write-exception
