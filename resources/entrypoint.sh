@@ -16,9 +16,6 @@ cd /games/src/website
 chown --recursive www-data:www-data /games/
 
 echo "Starting uvicorn server."
-uvicorn --root-path=/games/src/website \
-    --port=:8000 \
-    --processes=5 \
-    --uid=www-data --gid=www-data \
-    --limit-concurrency=5000 \
+gunicorn --bind :8000 \
+    --workers 5 \
     games.asgi:application
