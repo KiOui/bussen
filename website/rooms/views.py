@@ -189,7 +189,7 @@ class StartGameView(TemplateView):
             return JsonResponse({"error": True, "errormsg": "Room state error, please refresh this page."})
         except InvalidAmountOfPlayersException as e:
             return JsonResponse({"error": True, "errormsg": str(e)})
-        except ValueError as e:
+        except ValueError:
             return JsonResponse({"error": True, "errormsg": "Unknown error occurred"})
 
 
