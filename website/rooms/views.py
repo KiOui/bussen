@@ -179,18 +179,18 @@ class StartGameView(TemplateView):
         room = kwargs.get("room")
         player = get_player_from_request(request)
         if player is None or player.room != room:
-            return redirect("rooms:redirect")
+            return JsonResponse({"error": True, "errormsg": "Not authorized"})
 
         game = request.POST.get("game", None)
         try:
             room.start_game(game)
-            return redirect("rooms:redirect")
+            return JsonResponse({"error": False})
         except RoomStateException:
-            return redirect("rooms:redirect")
+            return JsonResponse({"error": True, "errormsg": "Room state error, please refresh this page."})
         except InvalidAmountOfPlayersException as e:
-            raise e
+            return JsonResponse({"error": True, "errormsg": str(e)})
         except ValueError as e:
-            raise e
+            return JsonResponse({"error": True, "errormsg": "Unknown error occurred"})
 
 
 class KickPlayerView(TemplateView):

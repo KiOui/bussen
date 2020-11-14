@@ -24,15 +24,16 @@
         {% if room.game is None %}
             <hr>
             <h4>Start a new game</h4>
-            <form method="POST" action="{% url 'rooms:start_game' room=room %}">
+            <div class="form">
                 {% csrf_token %}
+                <label for="game-selector">Game</label>
                 <select name="game" id="game-selector">
                     {% for game in games %}
                         <option value="{{ game }}">{{ game }}</option>
                     {% endfor %}
                 </select>
-                <input type="submit" class="btn btn-primary" value="Start game"/>
-            </form>
+                <input onclick="update_and_callback('{% url 'rooms:start_game' room=room %}', {'game': document.getElementById('game-selector').value}, start_game_callback)" type="button" class="btn btn-primary" value="Start game" id="start-game-button"/>
+            </div>
         {% else %}
 
         {% endif %}

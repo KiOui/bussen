@@ -86,6 +86,15 @@ function kick_player_callback(data) {
     }
 }
 
+function start_game_callback(data) {
+    if (data.error) {
+        alert(data.errormsg);
+    }
+    else {
+        window.location.refresh();
+    }
+}
+
 $(document).ready(function() {
     reconnect_socket();
 });
