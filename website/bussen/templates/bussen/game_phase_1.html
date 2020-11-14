@@ -1,4 +1,4 @@
-{% extends 'games/base.html' %}
+{% extends 'bussen/bussen_base.html' %}
 {% load static game %}
 
 {% block styles %}
@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="{% static 'bussen/css/toastr.css' %}"/>
 {% endblock %}
 
-{% block page %}
+{% block game %}
 <div class="container-lg min-vh-100 my-5">
     <div class="container text-center text-white" id="game-container">
         <h1 class="mb-5">Phase 1: Question round</h1>
@@ -26,7 +26,7 @@
 
 {% block js %}
     <script>
-        GAME_NAME = "{{ game }}";
+        GAME_NAME = "{{ game.id }}";
     </script>
     <script src="{% static 'bussen/js/game_phase_1.js' %}"></script>
     <script src="{% static 'bussen/js/toastr.js' %}"></script>

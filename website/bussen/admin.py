@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import BusGameModel, Player, Hand
+from .models import BusGameModel, Hand
 
 # Register your models here.
 
@@ -7,11 +7,6 @@ from .models import BusGameModel, Player, Hand
 @admin.register(BusGameModel)
 class GameAdmin(admin.ModelAdmin):
     """Admin model for Games."""
-
-
-@admin.register(Player)
-class PlayerAdmin(admin.ModelAdmin):
-    """Admin model for Players."""
 
 
 @admin.register(Hand)

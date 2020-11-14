@@ -20,7 +20,7 @@
     {% else %}
         <div class="card mx-auto mx-sm-2 mb-3 question-container">
             <div class="card-header">
-                {{ player.current_game.current_player }} is currently answering a question
+                {{ player.room.game.current_player }} is currently answering a question
             </div>
             <div class="card-body">
                 It will be your turn soon!
@@ -41,7 +41,6 @@
 {% if not refresh %}
     </div>
     <script>
-        REFRESH_GAME_QUESTION_URL = "{% url 'bussen:game_player_question' game=player.current_game %}"
+        add_update_list(update_and_replace, ["{% url 'bussen:game_player_question' room=player.room %}", document.getElementById("question-container"), {}]);
     </script>
-    <script src="{% static 'bussen/js/player-question.js' %}"></script>
 {% endif %}

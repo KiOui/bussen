@@ -1,0 +1,43 @@
+.room-container .card-body ul {
+    list-style: none;
+    padding-inline-start: 20px;
+}
+
+.room-container .card-body ul li {
+    display: flex;
+    justify-content: left;
+    align-items: center;
+}
+
+.player-text {
+    flex-grow: 1;
+}
+
+.room-container .card-body ul li.offline::before {
+    font-size: 16pt;
+    content: "\2022";
+    color: red;
+    font-weight: bold;
+    display: inline-block;
+    width: 1em;
+    margin-left: -1em;
+}
+
+.room-container .card-body ul li.online::before {
+    font-size: 16pt;
+    content: "\2022";
+    color: green;
+    font-weight: bold;
+    display: inline-block;
+    width: 1em;
+    margin-left: -1em;
+}
+
+.room-container form select, .room-container form input {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.kick-btn {
+    font-size: 8pt;
+}

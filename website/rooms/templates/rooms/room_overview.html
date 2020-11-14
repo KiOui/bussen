@@ -1,0 +1,38 @@
+{% extends 'games/base.html' %}
+{% load static room %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{% static 'rooms/css/room-overview.css' %}"/>
+{% endblock %}
+
+{% block page %}
+<div class="container-lg min-vh-100 d-flex align-items-center justify-content-center">
+    <div class="w-100 flex-row d-flex flex-nowrap justify-content-center">
+        <div class="card mx-auto mx-sm-2 mb-3">
+            <div class="card-header">
+                <h1>Room overview</h1>
+            </div>
+            <div class="card-body">
+                <p>Before starting a game you have to join a room. Create one below or join a room in the list.</p>
+                <h3>Rooms:</h3>
+                <div class="m-auto room-block d-flex flex-column">
+                    {% for room in rooms %}
+                        <div class="container d-flex flex-row justify-content-center align-items-center">
+                            <p class="mb-0 mr-5">Room {{ room }}</p>
+                            {% if room.game is None %}
+                                <a class="btn btn-primary" href="{% url 'rooms:join_room' room=room %}">Join room {{ room }}</a>
+                            {% else %}
+                                <p class="btn btn-success">Currently playing {{ room.game.game_name }}</p>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'rooms:create_room' %}">Create room</a>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

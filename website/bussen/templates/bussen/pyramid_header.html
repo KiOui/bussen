@@ -6,13 +6,13 @@
         <div class="container d-flex flex-column justify-content-start align-items-start" id="pyramid-header-container">
 {% endif %}
 
-<div class="btn {% if player.current_game.game.pyramid.current_card_index == 0 %}
+<div class="btn {% if player.room.game.game.pyramid.current_card_index == 0 %}
                  btn-danger
              {% else %}
                  btn-primary
              {% endif %})"
-     onclick="next_card({{ player.current_game.game.pyramid.current_card_index }});">
-    {% if player.current_game.game.pyramid.current_card_index == 0 %}
+     onclick="next_card({{ player.room.game.game.pyramid.current_card_index }});">
+    {% if player.room.game.game.pyramid.current_card_index == 0 %}
         To the bus
     {% else %}
         Next card
@@ -23,7 +23,6 @@
         </div>
     </nav>
     <script>
-        REFRESH_GAME_PYRAMID_HEADER = "{% url 'bussen:game_pyramid_header' game=player.current_game %}"
+        add_update_list(update_and_replace, ["{% url 'bussen:game_pyramid_header' room=room %}", document.getElementById("pyramid-header-container"), {}]);
     </script>
-    <script src="{% static 'bussen/js/pyramid-header.js' %}"></script>
 {% endif %}

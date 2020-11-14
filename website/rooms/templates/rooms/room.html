@@ -1,0 +1,54 @@
+{% load static %}
+
+{% if not refresh %}
+    <link rel="stylesheet" href="{% static 'rooms/css/room.css' %}"/>
+    <div class="card mx-auto mx-sm-2 mb-3 room-container" id="room-container-{{ room.id }}">
+{% endif %}
+    <div class="card-header">
+        <h1>Room {{ room }}</h1>
+    </div>
+
+    <div class="card-body">
+        <p>The following players are in this room:</p>
+        <ul>
+            {% for player in room.players %}
+                <li class="{% if player.online %}online{% else %}offline{% endif %}">
+                    <div class="player-text">{{ player }}
+                    {% if not player.online %}
+                        (Offline)</div>
+                        <div class="btn btn-danger kick-btn" onclick="kick_player('{{ player.id }}');">Kick</div>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+        {% if room.game is None %}
+            <hr>
+            <h4>Start a new game</h4>
+            <form method="POST" action="{% url 'rooms:start_game' room=room %}">
+                {% csrf_token %}
+                <select name="game" id="game-selector">
+                    {% for game in games %}
+                        <option value="{{ game }}">{{ game }}</option>
+                    {% endfor %}
+                </select>
+                <input type="submit" class="btn btn-primary" value="Start game"/>
+            </form>
+        {% else %}
+
+        {% endif %}
+    </div>
+    <div class="card-footer">
+        {% if room.game is None %}
+            <a href="{% url 'rooms:leave_room' room=room %}">Leave room</a>
+        {% endif %}
+    </div>
+
+{% if not refresh %}
+    </div>
+    <script>
+        ROOM_SLUG = "{{ room.slug }}";
+        KICK_PLAYER_URL = "{% url 'rooms:kick_player' room=room %}";
+        add_update_list(update_and_replace, ["{% url 'rooms:room_refresh' room=room %}", document.getElementById('room-container-{{ room.id }}'), {}]);
+    </script>
+    <script src="{% static 'rooms/js/room.js' %}"></script>
+{% endif %}

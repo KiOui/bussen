@@ -1,0 +1,33 @@
+{% extends 'games/base.html' %}
+{% load static %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{% static 'rooms/css/room-create.css' %}"/>
+{% endblock %}
+
+{% block page %}
+<div class="container-lg min-vh-100 d-flex align-items-center justify-content-center">
+    <div class="w-100 flex-row d-flex flex-nowrap justify-content-between">
+
+        <div class="m-auto d-flex justify-content-center">
+            <div class="card">
+                <div class="card-header">
+                    <h1>Create room</h1>
+                </div>
+                <div class="card-body">
+                    <p>Create a new room</p>
+                    <form method="POST">
+                        {% csrf_token %}
+                        {{ form }}
+                        <input type="submit" class="btn btn-primary" value="Create room"/>
+                    </form>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'rooms:redirect' %}">Go back</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

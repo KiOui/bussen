@@ -1,10 +1,215 @@
 import secrets
 
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+from django.urls import reverse
 from pyCardDeck import Deck, BaseCard
 
 import bussen.models
 import json
 import math
+
+
+class BusGameConsumer:
+    """BusGameConsumer, handle all websocket game input for bussen game."""
+
+    @staticmethod
+    def handle_phase1_message(message, player):
+        """Handle phase1 message."""
+        if "type" in message.keys():
+            if message["type"] == "answer":
+                BusGameConsumer.handle_phase1_message_answer(player, message["value"])
+                if player.room.game.phase != bussen.models.BusGameModel.PHASE_1:
+                    channel_layer = get_channel_layer()
+                    async_to_sync(channel_layer.group_send)(
+                        player.room.slug,
+                        {
+                            "type": "send_group_message",
+                            "text": json.dumps(
+                                {"type": "redirect", "delay": 3000, "url": reverse("bussen:redirect"),}  # noqa
+                            ),
+                        },
+                    )
+
+    @staticmethod
+    def handle_phase1_message_answer(player, value):
+        """Handle phase1 message of type answer."""
+        answer = player.room.game.handle_phase1_answer(player, value)
+        channel_layer = get_channel_layer()
+        if answer is not None:
+            if answer["group_drink"]:
+                async_to_sync(channel_layer.group_send)(
+                    player.room.slug,
+                    {
+                        "type": "send_group_message",
+                        "text": json.dumps(
+                            {
+                                "type": "message",
+                                "color": "yellow",
+                                "message": f"{player} guessed correctly. Everyone must drink.",
+                            }
+                        ),
+                    },
+                )
+            elif answer["drink"]:
+                async_to_sync(channel_layer.group_send)(
+                    player.room.slug,
+                    {
+                        "type": "send_group_message",
+                        "text": json.dumps(
+                            {
+                                "type": "message",
+                                "color": "red",
+                                "message": f"{player} guessed incorrectly. They need to drink.",
+                            }
+                        ),
+                    },
+                )
+            else:
+                async_to_sync(channel_layer.group_send)(
+                    player.room.slug,
+                    {
+                        "type": "send_group_message",
+                        "text": json.dumps(
+                            {"type": "message", "color": "green", "message": f"{player} guessed correctly."}
+                        ),
+                    },
+                )
+            async_to_sync(channel_layer.group_send)(
+                player.room.slug, {"type": "send_group_message", "text": json.dumps({"type": "refresh"})}
+            )
+
+    @staticmethod
+    def handle_phase2_message(message, player):
+        """Handle phase2 message."""
+        if "type" in message.keys():
+            if message["type"] == "card":
+                BusGameConsumer.handle_phase2_message_card(message, player)
+            elif message["type"] == "call":
+                BusGameConsumer.handle_phase2_message_call(message, player)
+            elif message["type"] == "next_card":
+                BusGameConsumer.handle_phase2_message_next_card(message, player)
+
+    @staticmethod
+    def handle_phase2_message_card(message, player):
+        """Handle phase2 message of type card."""
+        channel_layer = get_channel_layer()
+        if message["suit"] is not None and message["rank"] is not None:
+            if player.room.game.add_card_to_pile(player, message["suit"], message["rank"]):
+                async_to_sync(channel_layer.group_send)(
+                    player.room.slug, {"type": "send_group_message", "text": json.dumps({"type": "refresh"})}
+                )
+                async_to_sync(channel_layer.group_send)(
+                    player.room.slug,
+                    {
+                        "type": "send_group_message",
+                        "text": json.dumps(
+                            {"type": "message", "color": "yellow", "message": f"{player} placed a card."}
+                        ),
+                    },
+                )
+
+    @staticmethod
+    def handle_phase2_message_call(message, player):
+        """Handle phase2 message of type call."""
+        channel_layer = get_channel_layer()
+        removed, card_of_player = player.room.game.call_card(message["id"])
+        if removed:
+            async_to_sync(channel_layer.group_send)(
+                player.room.slug, {"type": "send_group_message", "text": json.dumps({"type": "refresh"})},
+            )
+            async_to_sync(channel_layer.group_send)(
+                player.room.slug,
+                {
+                    "type": "send_group_message",
+                    "text": json.dumps(
+                        {
+                            "type": "message",
+                            "color": "yellow",
+                            "message": f"{card_of_player}'s card was not correct. {card_of_player} must drink.",
+                        }
+                    ),
+                },
+            )
+        else:
+            async_to_sync(channel_layer.group_send)(
+                player.room.slug,
+                {
+                    "type": "send_group_message",
+                    "text": json.dumps(
+                        {
+                            "type": "message",
+                            "color": "yellow",
+                            "message": f"{card_of_player}'s card was correct. {player} must drink.",
+                        }
+                    ),
+                },
+            )
+
+    @staticmethod
+    def handle_phase2_message_next_card(message, player):
+        """Handle phase2 message of type next_card."""
+        channel_layer = get_channel_layer()
+        if player.room.game.phase2_next_turn(message["index"]):
+            if player.room.game.phase == bussen.models.BusGameModel.PHASE_2:
+                async_to_sync(channel_layer.group_send)(
+                    player.room.slug, {"type": "send_group_message", "text": json.dumps({"type": "refresh"})},
+                )
+        if player.room.game.phase != bussen.models.BusGameModel.PHASE_2:
+            async_to_sync(channel_layer.group_send)(
+                player.room.slug,
+                {
+                    "type": "send_group_message",
+                    "text": json.dumps(
+                        {"type": "redirect", "delay": 3000, "url": reverse("bussen:redirect"),}  # noqa
+                    ),
+                },
+            )
+
+    @staticmethod
+    def handle_phase3_message(message, player):
+        """Handle phase3 message."""
+        if "type" in message.keys():
+            if message["type"] == "guess":
+                BusGameConsumer.handle_phase3_message_guess(message, player)
+
+    @staticmethod
+    def handle_phase3_message_guess(message, player):
+        """Handle phase3 message of type guess."""
+        channel_layer = get_channel_layer()
+        if message["index"] == player.room.game.game.bus.current_card_index:
+            correct = player.room.game.phase3_guess(message["guess"], player)
+            if correct is not None:
+                if not correct:
+                    async_to_sync(channel_layer.group_send)(
+                        player.room.slug,
+                        {
+                            "type": "send_group_message",
+                            "text": json.dumps(
+                                {
+                                    "type": "message",
+                                    "color": "red",
+                                    "message": f"{player} guessed incorrectly and must drink",
+                                }
+                            ),
+                        },
+                    )
+
+            async_to_sync(channel_layer.group_send)(
+                player.room.slug, {"type": "send_group_message", "text": json.dumps({"type": "refresh"})},
+            )
+
+            if player.room.game.phase == bussen.models.BusGameModel.PHASE_FINISHED:
+                async_to_sync(channel_layer.group_send)(
+                    player.room.slug,
+                    {
+                        "type": "send_group_message",
+                        "text": json.dumps({"type": "celebrate", "url": reverse("bussen:redirect"),}),  # noqa
+                    },
+                )
+                player.room.game.delete()
+                player.room.game = None
+                player.room.save()
 
 
 class BusCard(BaseCard):
@@ -148,6 +353,11 @@ class Pyramid:
             return flattened_pyramid[self.current_card_index]
         else:
             return None
+
+    def can_add_cards(self):
+        """Check if cards can be added to pyramid."""
+        flattened_pyramid = [x for row in self.pyramid for x in row]
+        return self.current_card_index is not None and 0 <= self.current_card_index < len(flattened_pyramid)
 
     def add_card_to_pyramid(self, card: BusCard):
         """Add a card to the pyramid card list."""
@@ -498,11 +708,14 @@ class BusGame:
     @staticmethod
     def from_dict(dictionary):
         """Import from dictionary."""
-        return BusGame(
-            deck=Deck(cards=[BusCard.from_dict(x) for x in dictionary["deck"]], reshuffle=False),
-            pyramid=Pyramid.from_dict(dictionary["pyramid"]),
-            bus=Bus.from_dict(dictionary["bus"]),
-        )
+        try:
+            return BusGame(
+                deck=Deck(cards=[BusCard.from_dict(x) for x in dictionary["deck"]], reshuffle=False),
+                pyramid=Pyramid.from_dict(dictionary["pyramid"]),
+                bus=Bus.from_dict(dictionary["bus"]),
+            )
+        except KeyError:
+            return BusGame()
 
     def to_json(self):
         """Convert to json."""
@@ -540,6 +753,10 @@ class BusHand:
         else:
             return False
 
+    def reset(self):
+        """Reset hand."""
+        self.hand = list()
+
     def copy(self):
         """Copy this object."""
         return BusHand(preset=[x.copy() for x in self.hand])
@@ -562,43 +779,3 @@ class BusHand:
         """Import from json."""
         dictionary = json.loads(json_str)
         return BusHand.from_dict(dictionary)
-
-
-def get_player_from_request(request):
-    """
-    Get a player from a request.
-
-    :param request: the request
-    :return: a Player object if the request has a player, False otherwise
-    """
-    player_id = request.COOKIES.get(bussen.models.Player.PLAYER_COOKIE_NAME, None)
-    return get_player_from_cookie(player_id)
-
-
-def get_player_from_cookie(player_id: str):
-    """
-    Get a player from the player id.
-
-    :param player_id: the player id
-    :return: a Player object if the player id matches, None otherwise
-    """
-    if player_id is not None:
-        try:
-            player = bussen.models.Player.objects.get(cookie=player_id)
-            return player
-        except bussen.models.Player.DoesNotExist:
-            return None
-
-    return None
-
-
-def decode_message(message):
-    """Decode a message from json."""
-    text = message.get("text", None)
-    if text is not None:
-        try:
-            return json.loads(text)
-        except json.JSONDecodeError:
-            return {}
-    else:
-        return {}
