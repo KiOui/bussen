@@ -1,4 +1,4 @@
-from .models import Player
+from .models import Player, Room
 
 
 def get_player_from_request(request):
@@ -27,3 +27,37 @@ def get_player_from_cookie(player_id: str):
             return None
 
     return None
+
+
+def execute_data_minimisation(dry_run=False):
+    """
+    Remove all players that are offline and all rooms that only have offline players.
+
+    :param dry_run: does not really remove data if True
+    :return: list of objects removed
+    """
+    deleted_rooms = list()
+    deleted_players = list()
+
+    rooms = Room.objects.all()
+    for room in rooms:
+        delete = True
+        for player in room.players:
+            if player.online:
+                delete = False
+        if delete:
+            deleted_rooms.append(room)
+
+    players = Player.objects.all()
+    players_in_deleted_rooms = Player.objects.filter(room__in=deleted_rooms)
+    for player in players:
+        if not player.online and (player.room is None or player in players_in_deleted_rooms):
+            deleted_players.append(player)
+
+    if not dry_run:
+        for room in deleted_rooms:
+            room.delete()
+        for player in deleted_players:
+            player.delete()
+
+    return [deleted_rooms] + [deleted_players]

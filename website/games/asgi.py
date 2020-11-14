@@ -13,6 +13,6 @@ import django
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "games.settings")
 django.setup()
 
-from games.routing import application as application_websocket
+from games.routing import application as application_websocket # noqa
 
 application = application_websocket

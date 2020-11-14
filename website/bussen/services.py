@@ -779,3 +779,25 @@ class BusHand:
         """Import from json."""
         dictionary = json.loads(json_str)
         return BusHand.from_dict(dictionary)
+
+
+def execute_data_minimisation(dry_run=False):
+    """
+    Remove all bussen models that don't have a corrsponding room.
+
+    :param dry_run: does not really remove data if True
+    :return: list of objects removed
+    """
+    deleted_games = list()
+    bussen_games = bussen.models.BusGameModel.objects.all()
+    for game in bussen_games:
+        try:
+            game.room
+        except bussen.models.NoRoomForGameException:
+            deleted_games.append(game)
+
+    if not dry_run:
+        for game in deleted_games:
+            game.delete()
+
+    return [deleted_games]

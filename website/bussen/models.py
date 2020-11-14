@@ -36,11 +36,10 @@ class BusGameModel(models.Model):
     def room(self) -> Room:
         """Get the corresponding room for this game."""
         ct = ContentType.objects.get_for_model(self)
-        room = Room.objects.get(content_type=ct, object_id=self.id)
-        if room is None:
+        try:
+            return Room.objects.get(content_type=ct, object_id=self.id)
+        except Room.DoesNotExist:
             raise NoRoomForGameException
-        else:
-            return room
 
     def remove_player(self, player):
         """
