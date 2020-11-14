@@ -18,4 +18,5 @@ chown --recursive www-data:www-data /games/
 echo "Starting uvicorn server."
 gunicorn --bind :8000 \
     --workers 5 \
+    -k uvicorn.workers.UvicornWorker \
     games.asgi:application
