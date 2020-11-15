@@ -695,7 +695,7 @@ class BusGame:
         elif value == BusGame.VALUE_DO_NOT_HAVE_SUIT:
             return drawn_card.suit not in [x.suit for x in cards]
         else:
-            return drawn_card.rank in [x.rank for x in cards]
+            return len(set([drawn_card.suit] + [x.suit for x in cards])) == 4
 
     def to_dict(self):
         """Convert to dictionary."""
