@@ -26,3 +26,5 @@ RUN apt-get update && \
 
 
 COPY website /games/src/website/
+
+RUN echo "0 0 * * * www-data /tosti/src/website/manage.py dataminimisation" >> /etc/crontab
