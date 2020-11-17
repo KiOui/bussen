@@ -1,6 +1,7 @@
 ---
 
 name: "Build Production Docker Image"
+if: github.ref == 'refs/heads/master'
 on:
   push:
     branches:
@@ -23,4 +24,3 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           image-name: games
-          extract-git-tag: true
