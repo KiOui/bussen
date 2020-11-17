@@ -10,15 +10,13 @@ jobs:
   build-docker:
     name: "Build Production Docker Image"
     runs-on: ubuntu-latest
+    env:
+      DOCKER_LATEST: docker.pkg.github.com/${GITHUB_REPOSITORY}/${GITHUB_REPOSITORY##*/}:latest
+      DOCKER_TAG_PRODUCTION: docker.pkg.github.com/${GITHUB_REPOSITORY}/${GITHUB_REPOSITORY##*/}:${GITHUB_SHA}
     steps:
 
       - name: "Checkout repository"
         uses: actions/checkout@v2
-
-      - name: "Create environment for repository names"
-        run: |
-            echo "::set-env name=DOCKER_LATEST::docker.pkg.github.com/${GITHUB_REPOSITORY}/${GITHUB_REPOSITORY##*/}:latest"
-            echo "::set-env name=DOCKER_TAG_PRODUCTION::docker.pkg.github.com/${GITHUB_REPOSITORY}/${GITHUB_REPOSITORY##*/}:${GITHUB_SHA}"
 
       - name: "Build Docker image"
         run: docker build --tag ${DOCKER_LATEST,,} .
