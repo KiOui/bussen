@@ -1,5 +1,5 @@
 FROM python:3.8
-MAINTAINER Tartarus
+MAINTAINER Lars van Rhijn
 
 ENV PYTHONUNBUFFERED 1
 ENV DJANGO_SETTINGS_MODULE games.settings.production
