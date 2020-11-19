@@ -15,6 +15,8 @@ cd /games/src/website
 
 chown --recursive www-data:www-data /games/
 
+service cron start
+
 echo "Starting daphne server."
 daphne -b 0.0.0.0 \
     -p 8000 \

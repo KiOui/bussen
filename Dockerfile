@@ -28,4 +28,3 @@ RUN apt-get update && \
 COPY website /games/src/website/
 
 RUN echo "0 0 * * * www-data /games/src/website/manage.py dataminimisation" >> /etc/crontab
-RUN service cron start
